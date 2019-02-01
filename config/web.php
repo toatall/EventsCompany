@@ -4,7 +4,9 @@ $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
-    'id' => 'basic',
+    'id' => 'EventsCompany',
+    'name' => 'Электронный архив',
+    'language' => 'ru',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'aliases' => [
@@ -43,6 +45,11 @@ $config = [
             ],
         ],
         'db' => $db,
+        'formatter' => [
+            //'locale' => 'ru-RU',
+            'dateFormat' => 'php:d.m.Y',
+            'datetimeFormat' => 'php:d.m.Y H:i:s',
+        ],
         /*
         'urlManager' => [
             'enablePrettyUrl' => true,
