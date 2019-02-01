@@ -45,6 +45,11 @@ $config = [
             ],
         ],
         'db' => $db,
+        
+        'authManager' => [            
+            'class' => 'app\models\RbacManager',
+            'defaultRoles' => ['user'],
+        ],        
         'formatter' => [
             //'locale' => 'ru-RU',
             'dateFormat' => 'php:d.m.Y',
