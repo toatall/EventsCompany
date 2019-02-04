@@ -113,3 +113,40 @@ a.desc:after {
 .nav > li > form > button.logout:focus {
     outline: none;
 }
+
+.modal-dialog {
+    width: 90%;
+    margin: 30px auto;
+}
+
+.activity-date {
+    color: #428bca;
+    font-size: 25px;
+    font-weight: bold
+}
+
+.activity-title {    
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.item-header {
+	font-size: 25px;
+	font-weight: bold;
+}
+
+.activity-title:hover, .activity-title:after {
+    text-decoration: none;
+}
+
+.body-text::first-letter {
+	/*initial-letter: 1;
+    -webkit-initial-letter: 1;    
+	color: #428bca;    
+    float: left;
+    font-size: 50px;
+    margin: 0;
+    font-weight: bold;*/
+    font-size: 3em;
+    float:left;
+}
