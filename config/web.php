@@ -46,14 +46,21 @@ $config = [
         ],
         'db' => $db,
         
+        'assetManager' => [
+            'bundles' => [
+                'yii\web\JqueryAsset' => [
+                    'jsOptions' => ['position' => yii\web\View::POS_HEAD],
+                ],
+            ],
+        ],
         'authManager' => [            
             'class' => 'app\models\RbacManager',
             'defaultRoles' => ['user'],
         ],        
         'formatter' => [
-            //'locale' => 'ru-RU',
+            'locale' => 'ru-RU',
             'dateFormat' => 'php:d.m.Y',
-            'datetimeFormat' => 'php:d.m.Y H:i:s',
+            'datetimeFormat' => 'php:d.m.Y H:i:s',           
         ],
         /*
         'urlManager' => [
