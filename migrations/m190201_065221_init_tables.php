@@ -12,21 +12,31 @@ class m190201_065221_init_tables extends Migration
      */
     public function safeUp()
     {
+        // table organization
+        $this->createTable('ec_organization', [
+            'code' => $this->string(5)->notNull(),
+            'name' => $this->string(150)->notNull(),
+            'description' => $this->text(),
+        ]);
+        $this->addPrimaryKey('pk_organization', 'ec_organization', 'code');
+        
+        
         // table user
         $this->createTable('ec_user', [
             'username' => $this->string(250)->notNull(),
             'userfio' => $this->string(500)->null(),
             'rolename' => $this->string(30)->defaultValue('user'),
+            'access_org' => $this->string(),
             'date_create' => $this->dateTime()->notNull(),
             'date_update' => $this->dateTime()->null(),
-        ]);
-        
-        $this->addPrimaryKey('pk_username', 'ec_user', 'username');
+        ]);        
+        $this->addPrimaryKey('pk_username', 'ec_user', 'username');       
         
         // table event
         $this->createTable('ec_event', [
             'id' => $this->primaryKey(),
-            'theme' => $this->string(250)->notNull(),
+            'org_code' => $this->string(5)->notNull(),
+            'theme' => $this->string(500)->notNull(),
             'date1' => $this->date()->notNull(),
             'date2' => $this->date()->null(),
             'description' => $this->text()->null(),
@@ -50,6 +60,7 @@ class m190201_065221_init_tables extends Migration
             'user_on_video' => $this->string()->null(),
         ]);
         $this->addForeignKey('fk_event_user_username', 'ec_event', 'username', 'ec_user', 'username');
+        $this->addForeignKey('fk_event_organization', 'ec_event', 'org_code', 'ec_organization', 'code');
         
         // table file
         $this->createTable('ec_file', [
@@ -69,7 +80,7 @@ class m190201_065221_init_tables extends Migration
      * {@inheritdoc}
      */
     public function safeDown()
-    {
+    {        
         // drop table file
         $this->dropForeignKey('fk_file_user_username', 'ec_file');
         $this->dropForeignKey('fk_file_event_idevent', 'ec_file');
@@ -77,10 +88,14 @@ class m190201_065221_init_tables extends Migration
         
         // drop table event
         $this->dropForeignKey('fk_event_user_username', 'ec_event');
+        $this->dropForeignKey('fk_event_organization', 'ec_event');
         $this->dropTable('ec_event');
         
         // drop table user
         $this->dropTable('ec_user');
+        
+        // drop table organization
+        $this->dropTable('ec_organization');
     }
 
     /*
