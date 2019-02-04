@@ -1,6 +1,8 @@
 <?php
 namespace app\models;
 
+use yii\db\Expression;
+
 /**
  * Работа с датами
  * @author toatall
@@ -34,16 +36,49 @@ class DateHelper
     }
     
     /**
-     * Convert format date
+     * Convert date and time for view
      * @param string $date
      * @param boolean $onlyDate
      * @return NULL|string
      */
-    public static function formatDateTime($date, $onlyDate = false)
+    public static function readDateTime($date, $onlyDate = false)
     {
         if ($date == null)
             return null;
-            return date('d.m.Y' . ($onlyDate ? '' : ' H:i:s'), strtotime($date));
+        
+        return ($onlyDate) ? \Yii::$app->formatter->asDate($date)
+            : \Yii::$app->formatter->asDatetime($date);        
+    }
+    
+    /**
+     * Return sql expression for current date and time
+     * @return string
+     */
+    public static function currentDateTime()
+    {
+        if (\Yii::$app->db->driverName == 'mysql')
+        {
+            return new Expression('NOW()');
+        }
+        elseif (\Yii::$app->db->driverName == 'sqlsrv')
+        {
+            return new Expression('GETDATE()');
+        }
+        return null;
+    }
+    
+    /**
+     * Convert date and time for save in db
+     * @param string $date
+     * @param boolean $onlyDate
+     * @return NULL|string
+     */
+    public static function writeDateTime($date, $onlyDate = false)
+    {
+        if ($date==null)
+            return null;
+        return ($onlyDate) ? \Yii::$app->formatter->asDatetime($date, 'Y-M-d H:i:s')
+            : \Yii::$app->formatter->asDate($date, 'Y-M-d');        
     }
     
 }

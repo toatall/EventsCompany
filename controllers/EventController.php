@@ -8,6 +8,9 @@ use app\models\EventSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+use yii\helpers\Json;
+use yii\web\UploadedFile;
 
 /**
  * EventController implements the CRUD actions for Event model.
@@ -20,6 +23,21 @@ class EventController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'actions' => ['index', 'view', 'memberuserslist'],
+                        'allow' => true,
+                        'roles' => ['admin', 'moderator', 'user'],
+                    ],
+                    [
+                        'actions' => ['create', 'update', 'delete'],
+                        'allow' => true,
+                        'roles' => ['admin', 'moderator', 'user'], // @todo - delete user!!!!!
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -29,6 +47,12 @@ class EventController extends Controller
         ];
     }
 
+    
+    /** -----------------------------------------------------------------------
+     *  < ACTIONS >
+     */
+    
+    
     /**
      * Lists all Event models.
      * @return mixed
@@ -52,8 +76,18 @@ class EventController extends Controller
      */
     public function actionView($id)
     {
+        $model = $this->findModel($id);
+        if (Yii::$app->request->isAjax)
+        {
+            $resultJson = [
+                'title'=>$model->theme,
+                'content' => $this->renderPartial('viewJson', ['model'=>$model]),
+            ];
+            return Json::encode($resultJson);
+        }
+        
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
         ]);
     }
 
@@ -65,11 +99,18 @@ class EventController extends Controller
     public function actionCreate()
     {
         $model = new Event();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        
+        if ($model->load(Yii::$app->request->post())) {
+            
+            $model->thumbnailImage = UploadedFile::getInstance($model, 'thumbnailImage');
+            $model->uploadThumbnail();
+            if ($model->save())
+            {
+                $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');
+                $model->uploadAttachmentFiles();
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
-
         return $this->render('create', [
             'model' => $model,
         ]);
@@ -85,11 +126,19 @@ class EventController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        
+        if ($model->load(Yii::$app->request->post())) {
+            $model->thumbnailImage = UploadedFile::getInstance($model, 'thumbnailImage');
+            $model->attachmentFiles = UploadedFile::getInstances($model, 'uploadFiles');
+            $model->uploadThumbnail();
+            if ($model->save())
+            {
+                $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');
+                $model->uploadAttachmentFiles();
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
-
+        
         return $this->render('update', [
             'model' => $model,
         ]);
@@ -108,7 +157,49 @@ class EventController extends Controller
 
         return $this->redirect(['index']);
     }
-
+    
+    
+    /**
+     * List member_users
+     * @param string $term
+     * @return string
+     */
+    public function actionMemberuserslist($term = null)
+    {
+        $termFlag = ($term != null) && (!empty($term));
+        
+        $model = Event::find()->select('member_users');
+        if ($termFlag)
+        {
+            $model = $model->where(['like', 'member_users', $term]);
+        }
+        $model = $model->asArray()->all();
+        
+        $resultList = [];
+        foreach ($model as $m)
+        {
+            $tempUsers = preg_split('/,/', $m['member_users']);
+            $resultList = array_merge($resultList, $tempUsers);
+        }
+        
+        $resultList = array_unique($resultList);
+        sort($resultList);
+        if ($termFlag)
+        {
+            $resultList = array_filter($resultList, function ($value) use ($term) {
+                return strpos($value, $term) !== false;
+            });
+        }
+        
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        return Json::encode($resultList);
+    }
+    
+    /** 
+     *  < / ACTIONS >
+     *  -----------------------------------------------------------------------
+     */
+    
     /**
      * Finds the Event model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
@@ -124,4 +215,7 @@ class EventController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+    
+    
+    
 }

@@ -4,7 +4,6 @@ namespace app\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Event;
 
 /**
  * EventSearch represents the model behind the search form of `app\models\Event`.
@@ -18,7 +17,9 @@ class EventSearch extends Event
     {
         return [
             [['id', 'is_photo', 'is_video'], 'integer'],
-            [['theme', 'date1', 'date2', 'description', 'member_users', 'member_organizations', 'photo_path', 'video_path', 'date_create', 'date_update', 'date_delete', 'username', 'log_change', 'tags', 'date_activity', 'thumbnail', 'location', 'members_other', 'user_on_photo', 'user_on_video'], 'safe'],
+            [['theme', 'date1', 'date2', 'description', 'member_users', 'member_organizations', 'photo_path', 
+                'video_path', 'date_create', 'date_update', 'date_delete', 'username', 'log_change', 'tags', 
+                'date_activity', 'thumbnail', 'location', 'members_other', 'user_on_photo', 'user_on_video'], 'safe'],
         ];
     }
 
@@ -85,5 +86,31 @@ class EventSearch extends Event
             ->andFilterWhere(['like', 'user_on_video', $this->user_on_video]);
 
         return $dataProvider;
+    }
+    
+    /**
+     * Поиск мероприятий
+     * @param string $term
+     * @return \yii\data\ActiveDataProvider
+     */
+    public function searchLike($term)
+    {
+        $model = self::find();
+        if ($term != null)
+        {
+            $model = $model->where(['like', 'theme', $term])
+            ->orWhere(['like', 'member_users', $term])
+            ->orWhere(['like', 'member_organizations', $term])
+            ->orWhere(['like', 'location', $term])
+            ->orWhere(['like', 'members_other', $term])
+            ->orWhere(['like', 'user_on_photo', $term])
+            ->orWhere(['like', 'user_on_video', $term]);
+        }
+        return new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+            ],
+        ]);
     }
 }

@@ -1,53 +1,70 @@
 <?php
 
-/* @var $this yii\web\View */
+use yii\helpers\Url;
+use yii\widgets\ListView;
 
-$this->title = 'My Yii Application';
+/**
+ * @var $this yii\web\View
+ * @var yii\data\ActiveDataProvider $dataProvider
+ * @var string $term
+ *
+ * */
+
+$this->title = 'Электронный архив';
 ?>
-<div class="site-index">
+<div class="site-index">    
 
-    <div class="jumbotron">
-        <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
+    <h1><?= $this->title ?></h1>
+    <hr />
+    <div>
+        <form class="" action="<?= Url::toRoute('site/index') ?>" method="get" role="search">
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="text" name="term" class="form-control" placeholder="Поиск..." value="<?= $term ?>" />
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-success">Поиск</button>
+                    </span>
+                </div>                
+            </div>
+        </form>
     </div>
 
-    <div class="body-content">
+	<hr />
+	
+	<div class="qa-message-list" id="wallmessages">
+		<?php 
+	       echo ListView::widget([
+	           'dataProvider' => $dataProvider,
+	           'itemView' => '_index',	          
+	       ]); 		
+		?>
+	</div>
 
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+</div>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('a.modal-link').on('click', function () {
+            ajaxJson($(this).attr('href'), '#modal-title', '#modal-body');
+            $('#modal-dialog').modal('show');
+            return false;
+        });
+    });
+</script>
 
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
+<div class="modal fade" id="modal-dialog" tabindex="1" role="dialog">
+    <div class="modal-dialog modal-" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="close"><span aria-label="Close">&times;</span></button>
+                <h2 id="modal-title" style="font-weight: bold">Load title...</h2>
             </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
+            <div class="modal-body" id="modal-body">
+                Load body...
             </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
+            <div class="modal-footer">
+                <button type="button" data-dismiss="modal" class="btn btn-primary">Закрыть</button>
             </div>
         </div>
-
     </div>
 </div>

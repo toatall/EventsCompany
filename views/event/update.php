@@ -5,12 +5,12 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\Event */
 
-$this->title = 'Update Event: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Events', 'url' => ['index']];
+$this->title = 'Изменить мероприятие: #' . $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Главная', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->params['breadcrumbs'][] = 'Изменить';
 ?>
-<div class="event-update">
+<div class="main-update">
 
     <h1><?= Html::encode($this->title) ?></h1>
 

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\userinfo\UserInfo;
 
 /**
  * This is the model class for table "ec_user".
@@ -13,11 +14,15 @@ use Yii;
  * @property string $date_create
  * @property string $date_update
  *
- * @property EcEvent[] $ecEvents
- * @property EcFile[] $ecFiles
+ * @property Event[] $events
+ * @property File[] $files
  */
-class User extends \yii\db\ActiveRecord
+class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
+    
+    public $password;
+    public $authKey;
+    
     /**
      * {@inheritdoc}
      */
@@ -47,18 +52,18 @@ class User extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'username' => 'Username',
-            'userfio' => 'Userfio',
-            'rolename' => 'Rolename',
-            'date_create' => 'Date Create',
-            'date_update' => 'Date Update',
+            'username' => 'Логин',
+            'userfio' => 'ФИО',
+            'rolename' => 'Роль',
+            'date_create' => 'Дата создания',
+            'date_update' => 'Дата изменения',            
         ];
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getEcEvents()
+    public function getEvents()
     {
         return $this->hasMany(Event::className(), ['username' => 'username']);
     }
@@ -66,7 +71,7 @@ class User extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getEcFiles()
+    public function getFiles()
     {
         return $this->hasMany(File::className(), ['username' => 'username']);
     }
@@ -78,5 +83,124 @@ class User extends \yii\db\ActiveRecord
     public static function find()
     {
         return new UserQuery(get_called_class());
+    }
+    
+    
+    /**
+     * {@inheritdoc}
+     */
+    public static function findIdentity($id)
+    {
+        return self::find()->where('username=:username', [':username'=>$id])->one();
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        /*foreach (self::$users as $user) {
+         if ($user['accessToken'] === $token) {
+         return new static($user);
+         }
+         }*/
+        return null;
+    }
+    
+    /**
+     * Finds user by username
+     *
+     * @param string $username
+     * @return static|null
+     */
+    public static function findByUsername($username)
+    {
+        return self::findByCondition('username=:username', [':username'=>$username])->one();
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->username;
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function getAuthKey()
+    {
+        return $this->authKey;
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function validateAuthKey($authKey)
+    {
+        return $this->authKey === $authKey;
+    }
+    
+    /**
+     * Validates password
+     *
+     * @param string $password password to validate
+     * @return bool if password provided is valid for current user
+     */
+    public function validatePassword($password)
+    {
+        return $this->password === $password;
+    }
+    
+    /**
+     * {@inheritDoc}
+     * @see \yii\db\BaseActiveRecord::beforeSave()
+     */
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert))
+        {
+            return false;
+        }
+        
+        return true;        
+    }
+    
+    /**
+     * Login user
+     * @return boolean
+     */
+    public static function login()
+    {
+        $userInfo = UserInfo::inst();
+        
+        $model = self::find()->where('username=:username', [':username'=>$userInfo->userLogin])->one(); 
+        if ($model === null)
+        {            
+            $model = new self();
+            $model->username = $userInfo->userLogin;
+            $model->userfio = $userInfo->userName;
+            $model->rolename = 'user';
+            $model->date_create = DateHelper::currentDateTime();
+            //$model->validate();
+            //print_r($model->getErrors());exit;
+            
+            if (!$model->save())
+                return false;
+        }
+        
+        Yii::$app->user->login($model);
+        
+        return $model != null;
+    }
+    
+    /**
+     * Current user id
+     * @return string
+     */
+    public function getRole()
+    {
+        return $this->rolename;
     }
 }

@@ -19,7 +19,7 @@ class LogChangeHelper
     public static function setLog($log_record, $typeOperation) {
         if ($log_record != null)
             $log_record .= '|';
-            return $log_record . date('d.m.Y H:i:s') . ' ' . UserInfo::inst()->userLogin . $typeOperation;
+            return $log_record . date('d.m.Y H:i:s') . ' : ' . UserInfo::inst()->userLogin . ' : ' . $typeOperation;
     }
     
     

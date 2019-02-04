@@ -22,6 +22,12 @@ AppAsset::register($this);
     <?php $this->registerCsrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
+    <link href="/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <?= $this->registerJsFile('/js/bootstrap-datepicker.min.js', ['position' => yii\web\View::POS_END]) ?>
+    <?= $this->registerJsFile('/js/bootstrap-datepicker.ru.min.js', ['position' => yii\web\View::POS_END]) ?>
+    <?= $this->registerJsFile('/js/site.js', ['position' => yii\web\View::POS_END]) ?>
+    <?= $this->registerJsFile('/js/typeahead.bundle.min.js', ['position' => yii\web\View::POS_END]) ?>
+    <link href="/css/timeline.css" rel="stylesheet">
 </head>
 <body>
 <?php $this->beginBody() ?>
@@ -38,21 +44,21 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
+            ['label' => 'Главная', 'url' => ['/site/index']],
+            ['label' => 'Организации', 'url' => ['/organization/index']],
+            ['label' => 'Управление мероприятиями', 'url' => ['/event/index']],
             Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
-            ) : (
-                '<li>'
-                . Html::beginForm(['/site/logout'], 'post')
-                . Html::submitButton(
-                    'Logout (' . Yii::$app->user->identity->username . ')',
-                    ['class' => 'btn btn-link logout']
-                )
-                . Html::endForm()
-                . '</li>'
-            )
+                ['label' => 'Вход', 'url' => ['/site/login']]
+                ) : (
+                    '<li>'
+                    . Html::beginForm(['/site/logout'], 'post')
+                    . Html::submitButton(
+                        'Выход (' . Yii::$app->user->identity->username . ')',
+                        ['class' => 'btn btn-link logout']
+                        )
+                    . Html::endForm()
+                    . '</li>'
+                    )
         ],
     ]);
     NavBar::end();
@@ -69,7 +75,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
+        <p class="pull-left">&copy; УФНС России по ХМАО-Югре <?= date('Y') ?></p>
 
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>

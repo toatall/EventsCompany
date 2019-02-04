@@ -7,16 +7,16 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\EventSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Events';
+$this->title = 'Главная';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="event-index">
+<div class="main-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
-        <?= Html::a('Create Event', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Добавить мероприятие', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?= GridView::widget([
@@ -27,9 +27,10 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'id',
             'theme',
+            'date_activity',
             'date1',
             'date2',
-            'description:ntext',
+            //'description:ntext',
             //'member_users',
             //'member_organizations',
             //'is_photo',
@@ -39,10 +40,9 @@ $this->params['breadcrumbs'][] = $this->title;
             //'date_create',
             //'date_update',
             //'date_delete',
-            //'username',
+            //'user_login',
             //'log_change',
-            //'tags',
-            //'date_activity',
+            //'tags',            
             //'thumbnail',
             //'location',
             //'members_other',
