@@ -6,21 +6,19 @@ use Yii;
 use app\models\userinfo\UserInfo;
 use yii\bootstrap\Html;
 use yii\helpers\FileHelper;
-use yii\behaviors\AttributeBehavior;
-use yii\db\ActiveRecord;
-use yii\base\ModelEvent;
-use app\models\DateBehavior;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "ec_event".
  *
  * @property int $id
+ * @property string $org_code
  * @property string $theme
  * @property string $date1
  * @property string $date2
  * @property string $description
- * @property string $member_users
- * @property string $member_organizations
+ * @property array $member_users
+ * @property array $member_organizations
  * @property int $is_photo
  * @property int $is_video
  * @property string $photo_path
@@ -34,9 +32,9 @@ use app\models\DateBehavior;
  * @property string $date_activity
  * @property string $thumbnail
  * @property string $location
- * @property string $members_other
- * @property string $user_on_photo
- * @property string $user_on_video
+ * @property array $member_others
+ * @property array $user_on_photo
+ * @property array $user_on_video
  * 
  * @property string $linksMemberUsers
  * @property string $linksMemberOrganizations
@@ -51,6 +49,13 @@ use app\models\DateBehavior;
  */
 class Event extends \yii\db\ActiveRecord
 {
+    
+    const EVENT_TYPE_MEMBER_USERS = 1;
+    const EVENT_TYPE_MEMBER_ORGANIZATIONS = 2;
+    const EVENT_TYPE_MEMBER_OTHERS = 3;
+    const EVENT_TYPE_USER_ON_PHOTO = 4;
+    const EVENT_TYPE_USER_ON_VIDEO = 5;
+        
     /**
      * @uses views/site/_index
      * @var integer
@@ -95,14 +100,16 @@ class Event extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['theme', 'date1', 'is_photo', 'is_video', 'date_activity', 'location'], 'required'],
-            [['description'], 'string'],
+            [['theme', 'date1', 'is_photo', 'is_video', 'date_activity', 'location', 'org_code'], 'required'],
+            [['description', 'log_change'], 'string'],
+            [['org_code'], 'string', 'max'=>5],
             [['date1', 'date2', 'date_activity'], 'date', 'format'=>'php:d.m.Y'],            
             [['is_photo', 'is_video'], 'integer'],
             [['delThumbnail'], 'boolean'],
             [['username'], 'string', 'max' => 250],
-            [['member_users', 'member_organizations', 'log_change', 'tags', 
-                'members_other', 'user_on_photo', 'user_on_video'], 'string', 'max' => 255],
+            /*[['member_organizations', 'tags', 
+                'members_other', 'user_on_photo', 'user_on_video'], 'string', 'max' => 255],*/
+            [['member_users', 'member_organizations', 'member_others', 'user_on_photo', 'user_on_video'], 'safe'],
             [['theme', 'photo_path', 'video_path', 'thumbnail'], 'string', 'max' => 500],
             [['location'], 'string', 'max' => 2000],
             [['username'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['username' => 'username']],
@@ -116,6 +123,7 @@ class Event extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ИД',
+            'org_code' => 'Код организации',
             'theme' => 'Тема',
             'date_activity' => 'Дата мероприятия',
             'date1' => 'Фактическая дата начала мероприятия',
@@ -137,14 +145,22 @@ class Event extends \yii\db\ActiveRecord
             'location' => 'Место проведения',
             'members_other' => 'Участники (сторонние)',
             'user_on_photo' => 'Участники на фотографии',
-            'user_on_video' => 'Учатники на видео',
+            'user_on_video' => 'Участники на видео',
             'thumbnailImage' => 'Миниатюра',
             'delThumbnail' => 'Удалить миниатюру',
             'attachmentFiles' => 'Приложения',
             'delAttachmentFiles' => 'Удалить приложения',
         ];
     }
-
+    
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getOrganization()
+    {
+        return $this->hasOne(Organization::className(), ['org_code', 'code']);
+    }
+    
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -191,15 +207,15 @@ class Event extends \yii\db\ActiveRecord
         else
         {
             $this->date_update = DateHelper::currentDateTime();
-            $this->date_create = DateHelper::formatDateTimeDb($this->date_create, true);
+            $this->date_create = DateHelper::writeDateTime($this->date_create, true);
         }
                        
-        $this->date1 = DateHelper::formatDateTimeDb($this->date1);
-        $this->date2 = DateHelper::formatDateTimeDb($this->date2);
-        $this->date_activity = DateHelper::formatDateTimeDb($this->date_activity);
+        $this->date1 = DateHelper::writeDateTime($this->date1);
+        $this->date2 = DateHelper::writeDateTime($this->date2);
+        $this->date_activity = DateHelper::writeDateTime($this->date_activity);
         
         $this->username = UserInfo::inst()->userLogin;
-        $this->log_change = LogChangeHelper::setLog($this->log_change, ($this->isNewRecord ? 'создание': 'изменение'));
+        $this->log_change = LogChangeHelper::setLog($this->log_change, ($this->isNewRecord ? 'создание': 'изменение'));                     
         
         return true;
     }
@@ -238,6 +254,147 @@ class Event extends \yii\db\ActiveRecord
      */
     
     
+    /**
+     * < PROPERTY >
+     */
+    
+    /**
+     * Help function: Save members in table ec_member
+     * @param integer $type
+     * @param string[] $value
+     */
+    private function saveMembers($type, $value)
+    {
+        // 1. delete old members
+        \Yii::$app->db->createCommand()
+            ->delete('ec_member', [
+                'id_event' => $this->id,
+                'type_member' => $type,
+            ])->execute();
+        
+        
+        
+        // 2. save new members
+        if (!is_array($value))
+            return;
+        
+        foreach ($value as $v)
+        {            
+            \Yii::$app->db->createCommand()
+                ->insert('ec_member', [
+                    'id_event' => $this->id,
+                    'type_member' => $type,
+                    'text' => $v,
+                ])->execute();
+        }
+    }
+    
+    /**
+     * Help function: get members from table ec_member
+     * @param integer $type
+     * @return array
+     */
+    private function loadMembers($type)
+    {
+        $query = (new  \yii\db\Query())
+            ->from('ec_member')
+            ->where('id_event=:id_event and type_member=:type_member', [
+                ':id_event' => $this->id,
+                ':type_member' => $type,
+            ])
+            ->all();
+        return ArrayHelper::map($query, 'text', 'text');
+    }
+    
+    /**
+     * GET: member_users
+     * @return array
+     */
+    public function getMember_users()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_MEMBER_USERS);
+    }
+    
+    /**
+     * SET: member_users
+     * @param array $value
+     */
+    public function setMember_users($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_MEMBER_USERS, $value);
+    }
+    
+    /**
+     * GET: member_organization
+     */
+    public function getMember_organizations()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_MEMBER_ORGANIZATIONS);
+    }
+    
+    /**
+     * SET: member_organization
+     * @param array $value
+     */
+    public function setMember_organizations($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_MEMBER_ORGANIZATIONS, $value);
+    }
+    
+    /**
+     * GET: member_others
+     * @return array
+     */
+    public function getMember_others()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_MEMBER_OTHERS);
+    }
+    
+    /**
+     * SET: member_others
+     * @param array $value
+     */
+    public function setMember_others($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_MEMBER_OTHERS, $value);
+    }
+    
+    /**
+     * GET: user_on_photo
+     * @return array
+     */
+    public function getUser_on_photo()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_USER_ON_PHOTO);    
+    }
+    
+    /**
+     * SET: user_on_photo
+     * @param array $value
+     */
+    public function setUser_on_photo($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_USER_ON_PHOTO, $value);
+    }
+    
+    /**
+     * GET: user_on_video
+     * @return array
+     */
+    public function getUser_on_video()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_USER_ON_VIDEO);
+    }
+    
+    /**
+     * SET: user_on_video
+     * @param array $value
+     */
+    public function setUser_on_video($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_USER_ON_VIDEO, $value);
+    }
+    
     
     /**
      * Member users as links
@@ -263,7 +420,7 @@ class Event extends \yii\db\ActiveRecord
      */
     public function getLinksMemberOthers()
     {
-        return $this->toLinks($this->members_other);
+        return $this->toLinks($this->member_others);
     }
     
     /**
@@ -289,15 +446,17 @@ class Event extends \yii\db\ActiveRecord
      * @param string $str
      * @return string
      */
-    private function toLinks($str)
-    {
-        $array = preg_split('/,/', $str);
+    private function toLinks($arr)
+    {        
+        if (!is_array($arr))
+            $arr[] = $arr;
+        
         $lnk = '';
-        foreach ($array as $item)
+        foreach ($arr as $item)
         {
             if ($lnk != '')
                 $lnk .= ', ';
-                $lnk .= Html::a($item, ['site/index', 'term'=>$item], ['target'=>'_blank']);
+                $lnk .= Html::a($item, ['site/index', 'term'=>trim($item)], ['target'=>'_blank']);
         }
         return $lnk;
     }
@@ -348,9 +507,9 @@ class Event extends \yii\db\ActiveRecord
         {
             $this->deleteAttachmentFiles($this->delAttachmentFiles);
         }
-        
+       
         // upload attachments
-        if ($this->validate() && $this->attachmentFiles != null)
+        if ($this->attachmentFiles != null)
         {
             foreach ($this->attachmentFiles as $file)
             {
@@ -372,12 +531,12 @@ class Event extends \yii\db\ActiveRecord
     private function saveAttachmentDb($fileName)
     {
         return Yii::$app->db->createCommand()
-        ->insert(File::tableName(), [
-            'id_main' => $this->id,
-            'filename' => basename($fileName),
-            'filename_path' => $fileName,
-            'date_create' => DateHelper::currentDateTime(),
-            'username' => UserInfo::inst()->userLogin,
+            ->insert(File::tableName(), [
+                'id_event' => $this->id,
+                'filename' => basename($fileName),
+                'filename_path' => $fileName,
+                'date_create' => DateHelper::currentDateTime(),
+                'username' => UserInfo::inst()->userLogin,
         ])->execute();
     }
     
@@ -408,9 +567,9 @@ class Event extends \yii\db\ActiveRecord
      */
     public function deleteAttachmentFiles($id, $deleteAll=false)
     {
-        $query = (new \yii\db\Query())
-        ->from(File::tableName())
-        ->where('id_main=:id_main', [':id_main'=>$this->id]);
+        $query = (new \yii\db\Query())            
+            ->from(File::tableName())
+            ->where('id_main=:id_main', [':id_main'=>$this->id]);
         
         if (!$deleteAll)
         {
@@ -427,11 +586,11 @@ class Event extends \yii\db\ActiveRecord
                     
                     // delete from table
             Yii::$app->db->createCommand()
-            ->delete(File::tableName(), [
-                'id'=>$file['id'],
-                'id_main'=>$this['id'],
-            ])
-            ->execute();
+                ->delete(File::tableName(), [
+                    'id'=>$file['id'],
+                    'id_main'=>$this['id'],
+                ])
+                ->execute();
         }
     }
     
@@ -462,6 +621,79 @@ class Event extends \yii\db\ActiveRecord
                 $resultStr .= Html::a($file->filename, $file->filename_path, ['target'=>'_blank']);
         }
         return $resultStr;
+    }
+    
+    /*
+    public static function listField($field, $term)
+    {
+        $query = (new \yii\db\Query())
+            ->select("id, {$field}")
+            ->from('ec_event');
+        
+        if ($term!=null)
+            $query->where = ['like', $field, $term];    
+        
+        $query = $query->all();
+        
+        return ArrayHelper::map($query, 'id', $field);
+    }
+    */
+    
+        /*
+    public function listToStr($array)
+    {
+        return implode(', ', $array);
+    }*/
+    
+    /**
+     * Return tags with type member users
+     * @return array
+     */
+    public function tagsMemberUsers()
+    {      
+        return $this->tagsMember(self::EVENT_TYPE_MEMBER_USERS);     
+    }
+    
+    /**
+     * Return tags with type member organizations
+     * @return array
+     */
+    public function tagsMemberOrganizations()
+    {
+        return $this->tagsMember(self::EVENT_TYPE_MEMBER_ORGANIZATIONS);
+    }
+    
+    /**
+     * Return tags with type user on photo
+     * @return array
+     */
+    public function tagsUserOnPhoto()
+    {
+        return $this->tagsMember(self::EVENT_TYPE_USER_ON_PHOTO);
+    }
+    
+    /**
+     * Return tags with type user on video
+     * @return array
+     */
+    public function tagsUserOnVideo()
+    {
+        return $this->tagsMember(self::EVENT_TYPE_USER_ON_VIDEO);
+    }
+    
+    /**
+     * Help function: return all members by tag
+     * @param integer $typeMember
+     * @return array
+     */
+    private function tagsMember($typeMember)
+    {
+        $query = (new \yii\db\Query())
+            ->from('ec_member')
+            ->where('type_member=:type_member', [':type_member'=>$typeMember])
+            ->orderBy('text')
+            ->all();        
+        return ArrayHelper::map($query, 'text', 'text');
     }
     
     

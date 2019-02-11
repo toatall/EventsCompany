@@ -3,6 +3,10 @@
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use yii\helpers\ArrayHelper;
+use app\models\Organization;
+use kartik\typeahead\Typeahead;
+use yii\helpers\Url;
+use kartik\select2\Select2;
 /* @var $this yii\web\View */
 /* @var $model app\models\Event */
 /* @var $form yii\widgets\ActiveForm */
@@ -14,10 +18,28 @@ use yii\helpers\ArrayHelper;
         'options'=> ['enctype' => 'multipart/form-data']]); ?>
         
    	<?= $form->errorSummary($model) ?>
+   	
+   	<?= $form->field($model, 'org_code')->dropDownList(ArrayHelper::map(Organization::find()->all(), 'code', 'full')) ?>
 
-    <?= $form->field($model, 'theme')->textInput() ?>
+    <?= $form->field($model, 'theme')->widget(Typeahead::className(), [        
+        'pluginOptions' => ['highlight'=>true],
+        'dataset'=>[
+            [
+                'remote' => Url::to(['event/listtheme']),
+                'limit'=>10,
+            ],
+        ],
+    ]) ?>
 
-    <?= $form->field($model, 'location')->textInput() ?>
+    <?= $form->field($model, 'location')->widget(Typeahead::className(), [
+        'pluginOptions' => ['highlight'=>true],
+        'dataset'=>[
+            [
+                'remote' => Url::to(['event/listlocation']),
+                'limit'=>10,
+            ],
+        ],
+    ]) ?>
 
     <?= $form->field($model, 'date_activity')->textInput(['data-type'=>'date']) ?>
 
@@ -26,38 +48,79 @@ use yii\helpers\ArrayHelper;
     <?= $form->field($model, 'date2')->textInput(['data-type' => 'date']) ?>
 
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
-
-    <?= $form->field($model, 'member_users')->textInput() ?>
+		
     
     <div class="alert alert-warning">
-    <?= $form->field($model, 'thumbnailImage')->fileInput() ?>
-    
-    <?php
-    if (!$model->isNewRecord)
-    {
-        $fieldThumbnail = $form->field($model, 'delThumbnail');
-        echo ($model->thumbnail != null ? $fieldThumbnail->checkbox() : $fieldThumbnail->hiddenInput()->label(false));    
-    }
-    ?>
-    
+        <?= $form->field($model, 'thumbnailImage')->fileInput() ?>
+        
+        <?php
+        if (!$model->isNewRecord)
+        {
+            $fieldThumbnail = $form->field($model, 'delThumbnail');
+            echo ($model->thumbnail != null ? $fieldThumbnail->checkbox() : $fieldThumbnail->hiddenInput()->label(false));    
+        }
+        ?>    
 	</div>
 	
-    <?= $form->field($model, 'member_organizations')->textInput() ?>
+	
+	<?= $form->field($model, 'member_users')->widget(Select2::classname(), [               
+            'data'=> $model->tagsMemberUsers(),            
+            'options' => ['multiple' => true],
+            'pluginOptions' => [
+                'allowClear' => true,
+                'tags' => true,
+                'tokenSeparators' => [',', ';', '/'],
+            ],            
+        ]);
+    ?>
+     
+	<?= $form->field($model, 'member_organizations')->widget(Select2::classname(), [               
+            'data'=> $model->tagsMemberOrganizations(),            
+            'options' => ['multiple' => true],
+            'pluginOptions' => [
+                'allowClear' => true,
+                'tags' => true,
+                'tokenSeparators' => [',', ';', '/'],
+            ],            
+        ]);
+     ?>    
 
     <?= $form->field($model, 'is_photo')->checkBox() ?>
+    
+    <div class="panel panel-default" id="panel-photo">
+  		<div class="panel-body">
+        	<?= $form->field($model, 'photo_path')->textInput() ?>
+        	<?= $form->field($model, 'user_on_photo')->widget(Select2::classname(), [               
+                'data'=> $model->tagsUserOnPhoto(),            
+                'options' => ['multiple' => true],
+                'pluginOptions' => [
+                    'allowClear' => true,
+                    'tags' => true,
+                    'tokenSeparators' => [',', ';', '/'],
+                    ],            
+                ]);
+             ?>  
+    	</div>
+    </div>
 
     <?= $form->field($model, 'is_video')->checkBox() ?>
-
-    <?= $form->field($model, 'photo_path')->textInput() ?>
-
-    <?= $form->field($model, 'video_path')->textInput() ?>        
-    
-    <?= $form->field($model, 'members_other')->textInput() ?>
-
-    <?= $form->field($model, 'user_on_photo')->textInput() ?>
-
-    <?= $form->field($model, 'user_on_video')->textInput() ?>
-    
+	
+	<div class="panel panel-default" id="panel-video">
+  		<div class="panel-body">
+  			<?= $form->field($model, 'video_path')->textInput() ?> 
+  			<?= $form->field($model, 'user_on_video')->widget(Select2::classname(), [               
+                'data'=> $model->tagsUserOnVideo(),            
+                'options' => ['multiple' => true],
+                'pluginOptions' => [
+                    'allowClear' => true,
+                    'tags' => true,
+                    'tokenSeparators' => [',', ';', '/'],
+                    ],            
+                ]);
+             ?>  
+  		</div>
+  	</div>
+       
     <div class="alert alert-warning">
     	<?= $form->field($model, 'attachmentFiles[]')->fileInput(['multiple'=>true]) ?>
     	
@@ -82,8 +145,6 @@ use yii\helpers\ArrayHelper;
 <script type="text/javascript">
 
 	$(document).ready(function() {
-
-		
 		
 		$('input[data-type="date"]').datepicker({
 			todayBtn: true,
@@ -92,17 +153,18 @@ use yii\helpers\ArrayHelper;
 			todayHighlight: true
 		});
 
-		/*
-		var s = new Bloodhound({
-			datumTokenizer: Bloodhound.tokenizers.whitespace,
-			queryTokenizer: Bloodhound.tokenizers.whitespace,
-			local: ['photo_path', 'user_on_photo', 'user_on_video']
+		var chkPhoto = '#<?= Html::getInputId($model, 'is_photo') ?>';		
+		$('#panel-photo').toggle($(chkPhoto).prop('checked'));
+		$(chkPhoto).change(function() {
+			$('#panel-photo').slideToggle($(this).prop('checked'));
 		});
 
-		$('.typeahead').typeahead(null, {
-			name: 'aaa',
-			source: s
-		}); */
+		var chkVideo = '#<?= Html::getInputId($model, 'is_video') ?>';
+		$('#panel-video').toggle($(chkVideo).prop('checked'));
+		$(chkVideo).change(function() {
+			$('#panel-video').slideToggle($(this).prop('checked'));
+		});
+				
 	});
 	
 

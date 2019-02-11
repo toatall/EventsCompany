@@ -72,8 +72,8 @@ class EventSearch extends Event
 
         $query->andFilterWhere(['like', 'theme', $this->theme])
             ->andFilterWhere(['like', 'description', $this->description])
-            ->andFilterWhere(['like', 'member_users', $this->member_users])
-            ->andFilterWhere(['like', 'member_organizations', $this->member_organizations])
+            //->andFilterWhere(['like', 'member_users', $this->member_users])
+            //->andFilterWhere(['like', 'member_organizations', $this->member_organizations])
             ->andFilterWhere(['like', 'photo_path', $this->photo_path])
             ->andFilterWhere(['like', 'video_path', $this->video_path])
             ->andFilterWhere(['like', 'username', $this->username])
@@ -81,9 +81,9 @@ class EventSearch extends Event
             ->andFilterWhere(['like', 'tags', $this->tags])
             ->andFilterWhere(['like', 'thumbnail', $this->thumbnail])
             ->andFilterWhere(['like', 'location', $this->location])
-            ->andFilterWhere(['like', 'members_other', $this->members_other])
+            /*->andFilterWhere(['like', 'members_other', $this->members_other])
             ->andFilterWhere(['like', 'user_on_photo', $this->user_on_photo])
-            ->andFilterWhere(['like', 'user_on_video', $this->user_on_video]);
+            ->andFilterWhere(['like', 'user_on_video', $this->user_on_video])*/;
 
         return $dataProvider;
     }

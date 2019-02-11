@@ -65,4 +65,9 @@ class Organization extends \yii\db\ActiveRecord
     {
         return new OrganizationQuery(get_called_class());
     }
+    
+    public function getFull()
+    {
+        return $this->name . " ({$this->code})";
+    }
 }

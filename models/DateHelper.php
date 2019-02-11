@@ -77,8 +77,8 @@ class DateHelper
     {
         if ($date==null)
             return null;
-        return ($onlyDate) ? \Yii::$app->formatter->asDatetime($date, 'Y-M-d H:i:s')
-            : \Yii::$app->formatter->asDate($date, 'Y-M-d');        
+        return ($onlyDate) ? \Yii::$app->formatter->asDatetime(strtotime($date), 'yyyy-MM-dd hh:mm:ss')
+            : \Yii::$app->formatter->asDate(strtotime($date), 'yyyy-MM-dd');        
     }
     
 }

@@ -27,7 +27,7 @@ class EventController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'memberuserslist'],
+                        'actions' => ['index', 'view', 'memberuserslist', 'listtheme', 'listlocation', 'listmemberusers'],
                         'allow' => true,
                         'roles' => ['admin', 'moderator', 'user'],
                     ],
@@ -100,10 +100,11 @@ class EventController extends Controller
     {
         $model = new Event();
         
-        if ($model->load(Yii::$app->request->post())) {
+        if ($model->load(Yii::$app->request->post())) {            
             
             $model->thumbnailImage = UploadedFile::getInstance($model, 'thumbnailImage');
             $model->uploadThumbnail();
+            
             if ($model->save())
             {
                 $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');
@@ -158,6 +159,25 @@ class EventController extends Controller
         return $this->redirect(['index']);
     }
     
+    /**
+     * Return list themes
+     * @param string $term
+     * @return string
+     */
+    public function actionListtheme($term=null)    
+    {        
+        return Json::encode(Event::listField('theme', $term));        
+    }
+    
+    /**
+     * Return list locations
+     * @param string $term
+     * @return string
+     */
+    public function actionListlocation($term=null)
+    {        
+        return Json::encode(Event::listField('location', $term));        
+    }
     
     /**
      * List member_users
@@ -194,6 +214,50 @@ class EventController extends Controller
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return Json::encode($resultList);
     }
+    
+    /**
+     * 
+     * @param string $q
+     * @return string
+     */
+    /*
+    public function actionListmemberusers($q=null)
+    {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        // 1. get all data from db
+        $query = new \yii\db\Query();
+        
+        $query = $query->select('member_users')->from('ec_event');
+        
+        if ($q != null)
+            $query->where(['like', 'member_users', $q]);
+        
+        $result = $query->all();
+        
+        // 2. convert rows to list
+        $resultList = [];
+        foreach ($result as $r)
+        {
+            if ($r['member_users'] == null) continue;
+            $tempUsers = explode(',', $r['member_users']);                        
+            $resultList = array_merge($resultList, $tempUsers);
+        }
+        
+        // 3. distinct array and sort
+        $resultList = array_unique($resultList);        
+        sort($resultList);
+                
+        if ($q != null)
+        {
+            $resultList = array_filter($resultList, function ($value) use ($q) {                
+                return mb_strripos($value, $q) !== false;
+            });
+        }
+        $result['results'] = array_values($resultList);
+        return $result;      
+        //return Json::encode($resultList);        
+    }
+    */
     
     /** 
      *  < / ACTIONS >

@@ -54,8 +54,8 @@ use yii\helpers\Url;
 					<p><?= Html::activeLabel($model, 'member_organizations') ?>: <?= $model->linksMemberOrganizations ?></p>
 				<?php endif; ?>
 				
-				<?php if ($model->members_other): ?>
-					<p><?= Html::activeLabel($model, 'members_other') ?>: <?= $model->linksMemberOthers ?></p>
+				<?php if ($model->member_others): ?>
+					<p><?= Html::activeLabel($model, 'member_others') ?>: <?= $model->linksMemberOthers ?></p>
 				<?php endif; ?>
 				
 				<?php if ($model->user_on_photo): ?>

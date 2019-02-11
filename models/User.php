@@ -11,6 +11,7 @@ use app\models\userinfo\UserInfo;
  * @property string $username
  * @property string $userfio
  * @property string $rolename
+ * @property string $access_org
  * @property string $date_create
  * @property string $date_update
  *
@@ -39,6 +40,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return [
             [['username', 'date_create'], 'required'],
             [['date_create', 'date_update'], 'safe'],
+            [['access_org'], 'string'],
             [['username'], 'string', 'max' => 250],
             [['userfio'], 'string', 'max' => 500],
             [['rolename'], 'string', 'max' => 30],
@@ -55,6 +57,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'username' => 'Логин',
             'userfio' => 'ФИО',
             'rolename' => 'Роль',
+            'access_org' => 'Доступные организации',
             'date_create' => 'Дата создания',
             'date_update' => 'Дата изменения',            
         ];
