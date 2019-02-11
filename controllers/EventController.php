@@ -104,7 +104,7 @@ class EventController extends Controller
             
             $model->thumbnailImage = UploadedFile::getInstance($model, 'thumbnailImage');
             $model->uploadThumbnail();
-            
+                        
             if ($model->save())
             {
                 $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');

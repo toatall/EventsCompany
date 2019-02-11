@@ -63,8 +63,7 @@ class m190201_065221_init_tables extends Migration
         $this->addForeignKey('fk_event_organization', 'ec_event', 'org_code', 'ec_organization', 'code');
         
         // table members
-        $this->createTable('ec_member', [
-            'id' => $this->primaryKey(),
+        $this->createTable('ec_member', [            
             'id_event' => $this->integer()->notNull(),
             'type_member' => $this->smallInteger()->notNull(),
             'text' => $this->string(1000)->notNull(),            

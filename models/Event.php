@@ -55,7 +55,10 @@ class Event extends \yii\db\ActiveRecord
     const EVENT_TYPE_MEMBER_OTHERS = 3;
     const EVENT_TYPE_USER_ON_PHOTO = 4;
     const EVENT_TYPE_USER_ON_VIDEO = 5;
-        
+    
+    private $members = array();
+    
+    
     /**
      * @uses views/site/_index
      * @var integer
@@ -215,9 +218,15 @@ class Event extends \yii\db\ActiveRecord
         $this->date_activity = DateHelper::writeDateTime($this->date_activity);
         
         $this->username = UserInfo::inst()->userLogin;
-        $this->log_change = LogChangeHelper::setLog($this->log_change, ($this->isNewRecord ? 'создание': 'изменение'));                     
-        
+        $this->log_change = LogChangeHelper::setLog($this->log_change, ($this->isNewRecord ? 'создание': 'изменение'));
+                
         return true;
+    }
+    
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->saveMembersDb();                
     }
     
     /**
@@ -264,7 +273,16 @@ class Event extends \yii\db\ActiveRecord
      * @param string[] $value
      */
     private function saveMembers($type, $value)
-    {
+    {        
+        if (!is_array($value))
+            return;
+        
+        foreach ($value as $v)
+        {
+            $this->members[$type][] = $v;
+        }
+        
+        /*
         // 1. delete old members
         \Yii::$app->db->createCommand()
             ->delete('ec_member', [
@@ -286,6 +304,37 @@ class Event extends \yii\db\ActiveRecord
                     'type_member' => $type,
                     'text' => $v,
                 ])->execute();
+        }*/
+    }
+    
+    private function saveMembersDb()
+    {
+        //print_r('a'); exit;
+        foreach ($this->members as $type => $member)
+        {
+            // 1. delete old members
+            \Yii::$app->db->createCommand()
+                ->delete('ec_member', [
+                    'id_event' => $this->id,
+                    'type_member' => $type,
+                ])->execute();
+            
+            
+            
+            // 2. save new members
+            if (!is_array($member))
+                continue;
+                
+            foreach ($member as $m)
+            {
+                \Yii::$app->db->createCommand()
+                ->insert('ec_member', [
+                    'id_event' => $this->id,
+                    'type_member' => $type,
+                    'text' => $m,
+                ])->execute();
+            
+            }
         }
     }
     
