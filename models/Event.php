@@ -56,23 +56,27 @@ class Event extends \yii\db\ActiveRecord
     const EVENT_TYPE_USER_ON_PHOTO = 4;
     const EVENT_TYPE_USER_ON_VIDEO = 5;
     
+    /**
+     * Temp field for saving members from html-form
+     * @var array
+     */
     private $members = array();
     
-    
     /**
+     * Year
      * @uses views/site/_index
      * @var integer
      */
     public static $currentYear = 0;
     
     /**
-     * Uploaded thumbnail file
+     * Uploaded thumbnail
      * @var yii\web\UploadedFile
      */
     public $thumbnailImage;
     
     /**
-     * Flag to delete thumbnail file
+     * Flag to delete thumbnail files
      * @var boolean
      */
     public $delThumbnail = false;
@@ -109,9 +113,7 @@ class Event extends \yii\db\ActiveRecord
             [['date1', 'date2', 'date_activity'], 'date', 'format'=>'php:d.m.Y'],            
             [['is_photo', 'is_video'], 'integer'],
             [['delThumbnail'], 'boolean'],
-            [['username'], 'string', 'max' => 250],
-            /*[['member_organizations', 'tags', 
-                'members_other', 'user_on_photo', 'user_on_video'], 'string', 'max' => 255],*/
+            [['username'], 'string', 'max' => 250],            
             [['member_users', 'member_organizations', 'member_others', 'user_on_photo', 'user_on_video'], 'safe'],
             [['theme', 'photo_path', 'video_path', 'thumbnail'], 'string', 'max' => 500],
             [['location'], 'string', 'max' => 2000],
@@ -156,6 +158,10 @@ class Event extends \yii\db\ActiveRecord
         ];
     }
     
+    
+    
+    /*-------------------- Relations --------------------*/
+    
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -188,12 +194,14 @@ class Event extends \yii\db\ActiveRecord
     {
         return new EventQuery(get_called_class());
     }
-   
-    /**
-     * ----------------------------------------------
-     * < EVENTS >
-     */
     
+    /*-------------------- / Relations --------------------*/
+    
+    
+   
+    
+    /* ------------------- Events ------------------*/
+        
     /**
      * {@inheritDoc}
      * @see \yii\db\BaseActiveRecord::beforeSave()
@@ -232,8 +240,7 @@ class Event extends \yii\db\ActiveRecord
     /**
      * {@inheritDoc}
      * @see \yii\db\BaseActiveRecord::afterFind()
-     */
-    
+     */    
     public function afterFind()
     {        
         parent::afterFind();
@@ -252,23 +259,21 @@ class Event extends \yii\db\ActiveRecord
     {
         if (!parent::beforeDelete())
             return false;
-            $this->deleteThumbnail();
-            $this->deleteAttachmentFiles(null, true);
+        $this->deleteMembers();
+        $this->deleteThumbnail();
+        $this->deleteAttachmentFiles(null, true);
         return true;
     }
     
-    /**
-     * < / EVENTS >
-     * ---------------------------------------------
-     */
+    /* ------------------- / Events ------------------*/
     
     
-    /**
-     * < PROPERTY >
-     */
+    
+    /* ------------------- Help function ------------------*/
     
     /**
-     * Help function: Save members in table ec_member
+     * Save members 
+     * @category help function
      * @param integer $type
      * @param string[] $value
      */
@@ -281,38 +286,17 @@ class Event extends \yii\db\ActiveRecord
         {
             $this->members[$type][] = $v;
         }
-        
-        /*
-        // 1. delete old members
-        \Yii::$app->db->createCommand()
-            ->delete('ec_member', [
-                'id_event' => $this->id,
-                'type_member' => $type,
-            ])->execute();
-        
-        
-        
-        // 2. save new members
-        if (!is_array($value))
-            return;
-        
-        foreach ($value as $v)
-        {            
-            \Yii::$app->db->createCommand()
-                ->insert('ec_member', [
-                    'id_event' => $this->id,
-                    'type_member' => $type,
-                    'text' => $v,
-                ])->execute();
-        }*/
     }
     
+    /**
+     * Save all members in table `ec_member`
+     * @category help function
+     */
     private function saveMembersDb()
-    {
-        //print_r('a'); exit;
+    {        
         foreach ($this->members as $type => $member)
         {
-            // 1. delete old members
+            // 1. Delete existing members from the table
             \Yii::$app->db->createCommand()
                 ->delete('ec_member', [
                     'id_event' => $this->id,
@@ -321,7 +305,7 @@ class Event extends \yii\db\ActiveRecord
             
             
             
-            // 2. save new members
+            // 2. Insert new members into the table
             if (!is_array($member))
                 continue;
                 
@@ -339,7 +323,8 @@ class Event extends \yii\db\ActiveRecord
     }
     
     /**
-     * Help function: get members from table ec_member
+     * Help function: Get members by type
+     * @category help function
      * @param integer $type
      * @return array
      */
@@ -356,162 +341,29 @@ class Event extends \yii\db\ActiveRecord
     }
     
     /**
-     * GET: member_users
-     * @return array
-     */
-    public function getMember_users()
-    {
-        return $this->loadMembers(self::EVENT_TYPE_MEMBER_USERS);
-    }
-    
-    /**
-     * SET: member_users
-     * @param array $value
-     */
-    public function setMember_users($value)
-    {
-        $this->saveMembers(self::EVENT_TYPE_MEMBER_USERS, $value);
-    }
-    
-    /**
-     * GET: member_organization
-     */
-    public function getMember_organizations()
-    {
-        return $this->loadMembers(self::EVENT_TYPE_MEMBER_ORGANIZATIONS);
-    }
-    
-    /**
-     * SET: member_organization
-     * @param array $value
-     */
-    public function setMember_organizations($value)
-    {
-        $this->saveMembers(self::EVENT_TYPE_MEMBER_ORGANIZATIONS, $value);
-    }
-    
-    /**
-     * GET: member_others
-     * @return array
-     */
-    public function getMember_others()
-    {
-        return $this->loadMembers(self::EVENT_TYPE_MEMBER_OTHERS);
-    }
-    
-    /**
-     * SET: member_others
-     * @param array $value
-     */
-    public function setMember_others($value)
-    {
-        $this->saveMembers(self::EVENT_TYPE_MEMBER_OTHERS, $value);
-    }
-    
-    /**
-     * GET: user_on_photo
-     * @return array
-     */
-    public function getUser_on_photo()
-    {
-        return $this->loadMembers(self::EVENT_TYPE_USER_ON_PHOTO);    
-    }
-    
-    /**
-     * SET: user_on_photo
-     * @param array $value
-     */
-    public function setUser_on_photo($value)
-    {
-        $this->saveMembers(self::EVENT_TYPE_USER_ON_PHOTO, $value);
-    }
-    
-    /**
-     * GET: user_on_video
-     * @return array
-     */
-    public function getUser_on_video()
-    {
-        return $this->loadMembers(self::EVENT_TYPE_USER_ON_VIDEO);
-    }
-    
-    /**
-     * SET: user_on_video
-     * @param array $value
-     */
-    public function setUser_on_video($value)
-    {
-        $this->saveMembers(self::EVENT_TYPE_USER_ON_VIDEO, $value);
-    }
-    
-    
-    /**
-     * Member users as links
-     * @return string
-     */
-    public function getLinksMemberUsers()
-    {
-        return $this->toLinks($this->member_users);
-    }
-    
-    /**
-     * Member organizations for links on view
-     * @return string
-     */
-    public function getLinksMemberOrganizations()
-    {
-        return $this->toLinks($this->member_organizations);
-    }
-    
-    /**
-     * Member others for links on view
-     * @return string
-     */
-    public function getLinksMemberOthers()
-    {
-        return $this->toLinks($this->member_others);
-    }
-    
-    /**
-     * User on photo for links on view
-     * @return string
-     */
-    public function getLinksUserOnPhoto()
-    {
-        return $this->toLinks($this->user_on_photo);
-    }
-    
-    /**
-     * User on video for links on view
-     * @return string
-     */
-    public function getLinksUserOnVideo()
-    {
-        return $this->toLinks($this->user_on_video);
-    }
-    
-    /**
      * Create links
+     * @category help function
      * @param string $str
      * @return string
      */
     private function toLinks($arr)
-    {        
+    {
         if (!is_array($arr))
             $arr[] = $arr;
-        
-        $lnk = '';
-        foreach ($arr as $item)
-        {
-            if ($lnk != '')
-                $lnk .= ', ';
-                $lnk .= Html::a($item, ['site/index', 'term'=>trim($item)], ['target'=>'_blank']);
-        }
-        return $lnk;
+            
+            $lnk = '';
+            foreach ($arr as $item)
+            {
+                if ($lnk != '')
+                    $lnk .= ', ';
+                    $lnk .= Html::a($item, ['site/index', 'term'=>trim($item)], ['target'=>'_blank']);
+            }
+            return $lnk;
     }
     
     /**
-     * Generate file name
+     * File name generation
+     * @category help function
      * @param string $extension
      * @param string $prefix
      * @return string
@@ -522,18 +374,198 @@ class Event extends \yii\db\ActiveRecord
     }
     
     /**
+     * Return all members by tag
+     * @category help function
+     * @param integer $typeMember
+     * @return array
+     */
+    private function tagsMember($typeMember)
+    {
+        $query = (new \yii\db\Query())
+            ->from('ec_member')
+            ->where('type_member=:type_member', [':type_member'=>$typeMember])
+            ->orderBy('text')
+            ->all();
+        return ArrayHelper::map($query, 'text', 'text');
+    }
+        
+    /* ------------------- / Help function ------------------*/
+    
+    
+    
+    /* ------------------- Property ------------------*/
+    
+    /**
+     * GET: member_users
+     * @property member_users
+     * @return array
+     */
+    public function getMember_users()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_MEMBER_USERS);
+    }
+    
+    /**
+     * SET: member_users
+     * @property member_users
+     * @param array $value
+     */
+    public function setMember_users($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_MEMBER_USERS, $value);
+    }
+    
+    /**
+     * GET: member_organization
+     * @property member_organization
+     * @return array
+     */
+    public function getMember_organizations()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_MEMBER_ORGANIZATIONS);
+    }
+    
+    /**
+     * SET: member_organization
+     * @property member_organization
+     * @param array $value
+     */
+    public function setMember_organizations($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_MEMBER_ORGANIZATIONS, $value);
+    }
+    
+    /**
+     * GET: member_others
+     * @property member_others
+     * @return array
+     */
+    public function getMember_others()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_MEMBER_OTHERS);
+    }
+    
+    /**
+     * SET: member_others
+     * @property member_others
+     * @param array $value
+     */
+    public function setMember_others($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_MEMBER_OTHERS, $value);
+    }
+    
+    /**
+     * GET: user_on_photo
+     * @property user_on_photo
+     * @return array
+     */
+    public function getUser_on_photo()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_USER_ON_PHOTO);    
+    }
+    
+    /**
+     * SET: user_on_photo
+     * @property user_on_photo
+     * @param array $value
+     */
+    public function setUser_on_photo($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_USER_ON_PHOTO, $value);
+    }
+    
+    /**
+     * GET: user_on_video
+     * @property user_on_video
+     * @return array
+     */
+    public function getUser_on_video()
+    {
+        return $this->loadMembers(self::EVENT_TYPE_USER_ON_VIDEO);
+    }
+    
+    /**
+     * SET: user_on_video
+     * @property user_on_video
+     * @param array $value
+     */
+    public function setUser_on_video($value)
+    {
+        $this->saveMembers(self::EVENT_TYPE_USER_ON_VIDEO, $value);
+    }
+    
+    /**
+     * Links: member_users
+     * @property linksMemberUsers
+     * @return string
+     */
+    public function getLinksMemberUsers()
+    {
+        return $this->toLinks($this->member_users);
+    }
+    
+    /**
+     * Links: member_organizations
+     * @property linkMemberOrganizations
+     * @return string
+     */
+    public function getLinksMemberOrganizations()
+    {
+        return $this->toLinks($this->member_organizations);
+    }
+    
+    /**
+     * Links: member_others
+     * @property linkMemberOthers
+     * @return string
+     */
+    public function getLinksMemberOthers()
+    {
+        return $this->toLinks($this->member_others);
+    }
+    
+    /**
+     * Links: user_on_photo
+     * @property linksUserOnPhoto
+     * @return string
+     */
+    public function getLinksUserOnPhoto()
+    {
+        return $this->toLinks($this->user_on_photo);
+    }
+    
+    /**
+     * Links: user_on_video
+     * @property linksUserOnVideo
+     * @category property
+     * @return string
+     */
+    public function getLinksUserOnVideo()
+    {
+        return $this->toLinks($this->user_on_video);
+    }
+    
+    /*---------------- / Property -----------------------*/
+    
+    
+    
+    /*---------------- Thumbnail -----------------------*/
+    
+    /**
      * Upload thumbnail
+     * @category thumbnail
      * @return boolean
      */
     public function uploadThumbnail()
     {
-        // delete old thumbnail
+        // Delete existing thumbnail file
         if (!$this->isNewRecord && $this->delThumbnail)
         {
             $this->deleteThumbnail();
         }
         
-        // upload thumbnail
+        // Upload thumbnail file
         if ($this->validate() && $this->thumbnailImage != null)
         {
             $fileUpload = 'uploads/' . $this->generateName($this->thumbnailImage->extension, 'thumbnail_');
@@ -547,23 +579,63 @@ class Event extends \yii\db\ActiveRecord
     }
     
     /**
-     * Upload attachment files
+     * Delete thumbnail file from disk
+     * @category thumbnail
+     * @return boolean
+     */
+    private function deleteThumbnail()
+    {
+        $fileName = Yii::$app->basePath . '/web' . $this->thumbnail;
+        if (file_exists($fileName))
+        {
+            if (@FileHelper::unlink($fileName))
+            {
+                $this->thumbnail = null;
+                return true;
+            }
+        }
+        else $this->thumbnail = null;
+        return false;
+    }
+    
+    /**
+     * Return thumbnail for html image
+     * If an image from the table not found used special image
+     * @property thumbnailImageSrc
+     * @return string
+     */
+    public function getThumbnailImageSrc()
+    {
+        if (is_file(Yii::$app->basePath . '/web' . $this->thumbnail))
+            return $this->thumbnail;
+            return '/images/no_image_available.jpeg';
+    }
+    
+    /*---------------- / Thumbnail -----------------------*/
+    
+    
+    
+    /*---------------- Attachments -----------------------*/
+    
+    /**
+     * Upload attachments
+     * @category attachments
      */
     public function uploadAttachmentFiles()
     {
-        // delete selected attachments
+        // Delete selected attachments
         if ($this->delAttachmentFiles != null && is_array($this->delAttachmentFiles))
         {
             $this->deleteAttachmentFiles($this->delAttachmentFiles);
         }
        
-        // upload attachments
+        // Upload attachments
         if ($this->attachmentFiles != null)
         {
             foreach ($this->attachmentFiles as $file)
             {
                 $fileUpload = 'uploads/' . $this->generateName($file->extension, 'attachment_');
-                // save to db
+                // Insert into `ec_file` table
                 if ($file->saveAs($fileUpload))
                 {
                     $this->saveAttachmentDb('/' . $fileUpload);
@@ -573,7 +645,8 @@ class Event extends \yii\db\ActiveRecord
     }
     
     /**
-     * Save attachment files in table
+     * Add a new record to the `ec_file` table
+     * @category attachments
      * @param string $fileName
      * @return number
      */
@@ -590,35 +663,18 @@ class Event extends \yii\db\ActiveRecord
     }
     
     /**
-     * Delete thumbnail file
-     * @return boolean
-     */
-    public function deleteThumbnail()
-    {
-        $fileName = Yii::$app->basePath . '/web' . $this->thumbnail;
-        if (file_exists($fileName))
-        {
-            if (@FileHelper::unlink($fileName))
-            {
-                $this->thumbnail = null;
-                return true;
-            }
-        }
-        else $this->thumbnail = null;
-        return false;
-    }
-    
-    /**
-     * Delete attachments files
+     * Delete attachments
+     * @category attachments
      * @param int $id
      * @param boolean $deleteAll
      * @return number
      */
-    public function deleteAttachmentFiles($id, $deleteAll=false)
+    private function deleteAttachmentFiles($id, $deleteAll=false)
     {
+        // Selecting attachments from the `ec_file` table marked for deletion
         $query = (new \yii\db\Query())            
             ->from(File::tableName())
-            ->where('id_main=:id_main', [':id_main'=>$this->id]);
+            ->where('id_event=:id_event', [':id_event'=>$this->id]);
         
         if (!$deleteAll)
         {
@@ -628,34 +684,25 @@ class Event extends \yii\db\ActiveRecord
         foreach ($query->all() as $file)
         {
             $fileName = Yii::$app->basePath . '/web' . $file['filename_path'];
-            // delete file from disk
+            
+            // Delete file from disk
             if (file_exists($fileName))
                 if (!@FileHelper::unlink($fileName))
                     continue;
                     
-                    // delete from table
+            // Delete from the `ec_table` table
             Yii::$app->db->createCommand()
                 ->delete(File::tableName(), [
                     'id'=>$file['id'],
-                    'id_main'=>$this['id'],
+                    'id_event'=>$this['id'],
                 ])
                 ->execute();
         }
     }
     
     /**
-     * Return thumbnail src image
-     * @return string
-     */
-    public function getThumbnailImageSrc()
-    {
-        if (is_file(Yii::$app->basePath . '/web' . $this->thumbnail))
-            return $this->thumbnail;
-            return '/images/no_image_available.jpeg';
-    }
-    
-    /**
      * Attachments for download
+     * @category attachments
      * @return string
      */
     public function getAttachmentFileWithUri()
@@ -663,36 +710,20 @@ class Event extends \yii\db\ActiveRecord
         $resultStr = '';
         if ($this->files == null)
             return $resultStr;
-        foreach ($this->files as $file)
-        {
-            if ($resultStr != '')
-                $resultStr .= '<br />';
-                $resultStr .= Html::a($file->filename, $file->filename_path, ['target'=>'_blank']);
-        }
-        return $resultStr;
+            foreach ($this->files as $file)
+            {
+                if ($resultStr != '')
+                    $resultStr .= '<br />';
+                    $resultStr .= Html::a($file->filename, $file->filename_path, ['target'=>'_blank']);
+            }
+            return $resultStr;
     }
     
-    /*
-    public static function listField($field, $term)
-    {
-        $query = (new \yii\db\Query())
-            ->select("id, {$field}")
-            ->from('ec_event');
-        
-        if ($term!=null)
-            $query->where = ['like', $field, $term];    
-        
-        $query = $query->all();
-        
-        return ArrayHelper::map($query, 'id', $field);
-    }
-    */
+    /*---------------- / Attachments -----------------------*/
     
-        /*
-    public function listToStr($array)
-    {
-        return implode(', ', $array);
-    }*/
+    
+    
+    /*---------------- Tags -----------------------*/
     
     /**
      * Return tags with type member users
@@ -730,20 +761,18 @@ class Event extends \yii\db\ActiveRecord
         return $this->tagsMember(self::EVENT_TYPE_USER_ON_VIDEO);
     }
     
-    /**
-     * Help function: return all members by tag
-     * @param integer $typeMember
-     * @return array
-     */
-    private function tagsMember($typeMember)
-    {
-        $query = (new \yii\db\Query())
-            ->from('ec_member')
-            ->where('type_member=:type_member', [':type_member'=>$typeMember])
-            ->orderBy('text')
-            ->all();        
-        return ArrayHelper::map($query, 'text', 'text');
-    }
+    /*---------------- / Tags -----------------------*/
     
+    /**
+     * Delete members from `ec_member` table
+     */
+    private function deleteMembers()
+    {
+        \Yii::$app->db->createCommand()
+            ->delete('ec_member', [
+                'id_event'=>$this->id,
+            ])
+            ->execute();
+    }
     
 }
