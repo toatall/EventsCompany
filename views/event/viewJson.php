@@ -37,7 +37,7 @@ use yii\bootstrap\Html;
             'format'=>'raw',
         ];
         $attributes[] = [
-            'attribute'=>'members_other',
+            'attribute'=>'member_others',
             'value'=>$model->linksMemberOthers,
             'format'=>'raw',
         ];
