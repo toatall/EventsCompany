@@ -77,8 +77,26 @@ class DateHelper
     {
         if ($date==null)
             return null;
-        return ($onlyDate) ? \Yii::$app->formatter->asDatetime(strtotime($date), 'yyyy-MM-dd hh:mm:ss')
-            : \Yii::$app->formatter->asDate(strtotime($date), 'yyyy-MM-dd');        
+        return ($onlyDate) ? \Yii::$app->formatter->asDatetime(strtotime($date), self::formatLong())
+            : \Yii::$app->formatter->asDate(strtotime($date), self::formatShort());        
+    }
+    
+    /**
+     * Long format date
+     * @return string
+     */
+    public static function formatLong()
+    {
+        return \Yii::$app->db->driverName == 'mysql' ? 'yyyy-MM-dd hh:mm:ss' : 'dd.MM.yyyy hh:mm:ss';
+    }
+    
+    /**
+     * Short format date
+     * @return string
+     */
+    public static function formatShort()
+    {
+        return \Yii::$app->db->driverName == 'mysql' ? 'yyyy-MM-dd' : 'dd.MM.yyyy';
     }
     
 }
