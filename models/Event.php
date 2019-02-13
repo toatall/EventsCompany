@@ -148,7 +148,7 @@ class Event extends \yii\db\ActiveRecord
             'tags' => 'Тэги',
             'thumbnail' => 'Миниатюра',
             'location' => 'Место проведения',
-            'members_other' => 'Участники (сторонние)',
+            'member_others' => 'Участники (сторонние)',
             'user_on_photo' => 'Участники на фотографии',
             'user_on_video' => 'Участники на видео',
             'thumbnailImage' => 'Миниатюра',
@@ -741,6 +741,15 @@ class Event extends \yii\db\ActiveRecord
     public function tagsMemberOrganizations()
     {
         return $this->tagsMember(self::EVENT_TYPE_MEMBER_ORGANIZATIONS);
+    }
+    
+    /**
+     * Return tags with type member others
+     * @return array
+     */
+    public function tagsMemberOrhers()
+    {
+        return $this->tagsMember(self::EVENT_TYPE_MEMBER_OTHERS);
     }
     
     /**

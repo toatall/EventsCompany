@@ -84,6 +84,17 @@ use kartik\select2\Select2;
             ],            
         ]);
      ?>    
+     
+     <?= $form->field($model, 'member_others')->widget(Select2::classname(), [               
+            'data'=> $model->tagsMemberOrhers(),            
+            'options' => ['multiple' => true],
+            'pluginOptions' => [
+                'allowClear' => true,
+                'tags' => true,
+                'tokenSeparators' => [',', ';', '/'],
+            ],            
+        ]);
+     ?>   
 
     <?= $form->field($model, 'is_photo')->checkBox() ?>
     
