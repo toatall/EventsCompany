@@ -100,18 +100,19 @@ class EventSearch extends Event
         if ($term != null)
         {
             $model = $model->where(['like', 'theme', $term])
-            ->orWhere(['like', 'member_users', $term])
-            ->orWhere(['like', 'member_organizations', $term])
-            ->orWhere(['like', 'location', $term])
-            ->orWhere(['like', 'members_other', $term])
-            ->orWhere(['like', 'user_on_photo', $term])
-            ->orWhere(['like', 'user_on_video', $term]);
+                ->orWhere(['like', 'member_users', $term])
+                ->orWhere(['like', 'member_organizations', $term])
+                ->orWhere(['like', 'location', $term])
+                ->orWhere(['like', 'members_other', $term])
+                ->orWhere(['like', 'user_on_photo', $term])
+                ->orWhere(['like', 'user_on_video', $term]);
         }
         return new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
                 'pageSize' => 30,
             ],
+            'sort'=> ['defaultOrder' => ['date_activity'=>SORT_DESC]],
         ]);
     }
 }
