@@ -47,6 +47,7 @@ class EventSearch extends Event
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort'=> ['defaultOrder' => ['date_activity'=>SORT_DESC]],
         ]);
 
         $this->load($params);

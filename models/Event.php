@@ -775,4 +775,25 @@ class Event extends \yii\db\ActiveRecord
             ->execute();
     }
     
+    /**
+     * Search text by $field in `ec_event` table 
+     * @param string $field
+     * @param string $term
+     * @return array
+     */
+    public static function listField($field, $term)
+    {
+        $query = (new \yii\db\Query())
+            ->select("id, {$field}")
+            ->from('ec_event')
+            ->distinct();
+        
+        if ($term!=null)
+        {
+            $query = $query->where = ['like', $field, $term];
+        }
+        
+        return ArrayHelper::map($query->all(), 'id', $field);
+    }
+    
 }
