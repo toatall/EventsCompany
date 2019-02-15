@@ -4,6 +4,7 @@ namespace app\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\data\SqlDataProvider;
 
 /**
  * EventSearch represents the model behind the search form of `app\models\Event`.
@@ -90,23 +91,25 @@ class EventSearch extends Event
     }
     
     /**
-     * Поиск мероприятий
+     * Public search events
      * @param string $term
      * @return \yii\data\ActiveDataProvider
      */
     public function searchLike($term)
     {
-        $model = self::find();
-        if ($term != null)
-        {
-            $model = $model->where(['like', 'theme', $term])
-                ->orWhere(['like', 'member_users', $term])
-                ->orWhere(['like', 'member_organizations', $term])
-                ->orWhere(['like', 'location', $term])
-                ->orWhere(['like', 'members_other', $term])
-                ->orWhere(['like', 'user_on_photo', $term])
-                ->orWhere(['like', 'user_on_video', $term]);
-        }
+        $model = self::find()
+            ->leftJoin('ec_member m_users', 'ec_event.id=m_users.id_event and m_users.type_member='.Event::EVENT_TYPE_MEMBER_USERS)
+            ->leftJoin('ec_member m_organizations', 'ec_event.id=m_organizations.id_event and m_organizations.type_member='.Event::EVENT_TYPE_MEMBER_ORGANIZATIONS)
+            ->leftJoin('ec_member m_others', 'ec_event.id=m_others.id_event and m_others.type_member='.Event::EVENT_TYPE_MEMBER_OTHERS)           
+            ->andWhere('ec_event.date_delete is null')
+            ->andWhere(['or', 
+                ['like', 'theme', $term],
+                ['like', 'location', $term],
+                ['like', 'm_users.text', $term],
+                ['like', 'm_organizations.text', $term],
+                ['like', 'm_others.text', $term],
+            ]);
+                
         return new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
