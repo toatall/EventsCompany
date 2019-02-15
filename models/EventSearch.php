@@ -98,8 +98,7 @@ class EventSearch extends Event
     public function searchLike($term)
     {
         
-        $model = self::find()            
-            ->distinct(true)
+        $model = self::find()                        
             ->alias('t')
             ->leftJoin('ec_member m_users', 't.id=m_users.id_event and m_users.type_member='.Event::EVENT_TYPE_MEMBER_USERS)
             ->leftJoin('ec_member m_organizations', 't.id=m_organizations.id_event and m_organizations.type_member='.Event::EVENT_TYPE_MEMBER_ORGANIZATIONS)
@@ -114,6 +113,7 @@ class EventSearch extends Event
             ]);
                 
         return new ActiveDataProvider([
+            'totalCount'=>$model->distinct(true)->count('t.id'),            
             'query' => $model,            
             'pagination' => [
                 'pageSize' => 30,
