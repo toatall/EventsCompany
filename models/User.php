@@ -106,12 +106,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      * {@inheritdoc}
      */
     public static function findIdentityByAccessToken($token, $type = null)
-    {
-        /*foreach (self::$users as $user) {
-         if ($user['accessToken'] === $token) {
-         return new static($user);
-         }
-         }*/
+    {        
         return null;
     }
     
@@ -191,8 +186,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             $model->userfio = $userInfo->userName;
             $model->rolename = 'user';
             $model->date_create = DateHelper::currentDateTime();
-            //$model->validate();
-            //print_r($model->getErrors());exit;
             
             if (!$model->save())
                 return false;

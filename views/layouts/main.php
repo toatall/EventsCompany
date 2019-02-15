@@ -45,8 +45,10 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             ['label' => 'Главная', 'url' => ['/site/index']],
-            ['label' => 'Организации', 'url' => ['/organization/index']],
-            ['label' => 'Управление мероприятиями', 'url' => ['/event/index']],
+            ['label' => 'Организации', 'url' => ['/organization/index'], 'visible'=>Yii::$app->user->can('admin')],
+            ['label' => 'Пользователи', 'url' => ['/user/index'], 'visible'=>Yii::$app->user->can('admin')],
+            ['label' => 'Управление мероприятиями', 'url' => ['/event/index'], 
+                'visible'=>Yii::$app->user->can('moderator') || Yii::$app->user->can('admin')],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Вход', 'url' => ['/site/login']]
                 ) : (
