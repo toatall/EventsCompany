@@ -799,7 +799,7 @@ class Event extends \yii\db\ActiveRecord
         
         if ($term!=null)
         {
-            $query = $query->where = ['like', $field, $term];
+            $query->where = ['like', $field, $term];
         }
         
         return ArrayHelper::map($query->all(), 'id', $field);

@@ -166,7 +166,7 @@ class EventController extends Controller
      */
     public function actionListtheme($term=null)    
     {        
-        return Json::encode(Event::listField('theme', $term));        
+        return Json::encode(Event::listField('theme', $term));
     }
     
     /**

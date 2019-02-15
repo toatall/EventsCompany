@@ -15,31 +15,49 @@ use kartik\select2\Select2;
 <div class="main-form">
 
     <?php $form = ActiveForm::begin([
-        'options'=> ['enctype' => 'multipart/form-data']]); ?>
+        'options'=> ['enctype' => 'multipart/form-data', 'autocomplete'=>'off']]); ?>
         
    	<?= $form->errorSummary($model) ?>
    	
    	<?= $form->field($model, 'org_code')->dropDownList(ArrayHelper::map(Organization::find()->all(), 'code', 'full')) ?>
 
     <?= $form->field($model, 'theme')->widget(Typeahead::className(), [        
-        'pluginOptions' => ['highlight'=>true],
+        'pluginOptions' => [
+            'allowClear' => true,            
+            'highlight'=>true,
+            'scrollable' => true,           
+        ],
         'dataset'=>[
-            [
-                'remote' => Url::to(['event/listtheme']),
-                'limit'=>10,
+            [                
+                'remote' => [
+                    'url'=>Url::to(['event/listtheme', 'term'=>'_QUERY_']),
+                    'wildcard'  => '_QUERY_',
+                ],
+                'datumTokenizer' => "Bloodhound.tokenizers.whitespace('term')",
+                'queryTokenizer' => "Bloodhound.tokenizers.whitespace",
             ],
         ],
+        
     ]) ?>
-
-    <?= $form->field($model, 'location')->widget(Typeahead::className(), [
-        'pluginOptions' => ['highlight'=>true],
+    
+    <?= $form->field($model, 'location')->widget(Typeahead::className(), [        
+        'pluginOptions' => [
+            'allowClear' => true,            
+            'highlight'=>true,
+            'scrollable' => true,           
+        ],
         'dataset'=>[
-            [
-                'remote' => Url::to(['event/listlocation']),
-                'limit'=>10,
+            [                
+                'remote' => [
+                    'url'=>Url::to(['event/listlocation', 'term'=>'_QUERY_']),
+                    'wildcard'  => '_QUERY_',
+                ],
+                'datumTokenizer' => "Bloodhound.tokenizers.whitespace('term')",
+                'queryTokenizer' => "Bloodhound.tokenizers.whitespace",
             ],
         ],
-    ]) ?>
+        
+    ]) ?>    
 
     <?= $form->field($model, 'date_activity')->textInput(['data-type'=>'date']) ?>
 
