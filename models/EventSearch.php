@@ -113,7 +113,7 @@ class EventSearch extends Event
             ]);
                 
         return new ActiveDataProvider([
-            'totalCount'=>$model->distinct(true)->count('t.id'),            
+            'totalCount'=>$model->distinct(true)->count(),            
             'query' => $model,            
             'pagination' => [
                 'pageSize' => 30,
