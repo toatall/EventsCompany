@@ -5,7 +5,7 @@ use yii\bootstrap\Html;
 use yii\helpers\Url;
 
 /**
- * @var Main $model
+ * @var Event $model
  */
 
 ?>
@@ -26,49 +26,63 @@ use yii\helpers\Url;
     }
 ?>
 <div class="message-item">
+		<span style="font-size:18px" class="label label-primary">
+        	<?= date('d', strtotime($model->date_activity)) ?>
+        	<?= DateHelper::monthByIndex(date('m', strtotime($model->date_activity))) ?>
+        	<?= $year ?>
+        </span>
 	<div class="message-inner">				
-		<div class="message-head clearfix breadcrumb">
+		<div class="message-head clearfix breadcrumbs">
 			<div class="avatar pull-left">
 				<a href="<?= Url::toRoute(['event/view', 'id'=>$model->id]) ?>" class="modal-link">
 					<img src="<?= $model->thumbnailImageSrc ?>" style="width: 300px;" class="thumbnail">
 				</a>
      		</div>
     		<div class="user-detail">
-    			<p class="item-header"><?= $model->theme ?></p>
-    			<div class="">
+    			<p class="item-header">
+    				<?= $model->theme ?>
+    			</p>
+    				<?php if ($model->is_photo): ?>
+    				<span class="label label-default">Фото</span>
+    				<?php endif; ?>
+    				<?php if ($model->is_video): ?> 
+    				<span class="label label-default">Видео</span>
+    				<?php endif; ?>
+    			
+    			<!-- div class="">
 					<div class="activity-date"><b><?= date('d', strtotime($model->date_activity)) ?>
 					<?= DateHelper::monthByIndex(date('m', strtotime($model->date_activity))) ?>
 					<?= $year ?></b>
 					</div>
-				</div>    			
+				</div-->    			
     		</div>
 		</div>
 		<div class="qa-message-content text-justify">	
-			<div class="well" style="background: white;">
+			<div class="wells" style="background: white;">
 				
 				<?php if ($model->member_users != null): ?>
-					<p><?= Html::activeLabel($model, 'member_users') ?>: <?= $model->linksMemberUsers ?></p>
+					<?= Html::activeLabel($model, 'member_users') ?>: <?= $model->linksMemberUsers ?>
 				<?php endif; ?>
 				
 				<?php if ($model->member_organizations != null): ?>
-					<p><?= Html::activeLabel($model, 'member_organizations') ?>: <?= $model->linksMemberOrganizations ?></p>
+					<br /><?= Html::activeLabel($model, 'member_organizations') ?>: <?= $model->linksMemberOrganizations ?>
 				<?php endif; ?>
 				
 				<?php if ($model->member_others): ?>
-					<p><?= Html::activeLabel($model, 'member_others') ?>: <?= $model->linksMemberOthers ?></p>
+					<br /><?= Html::activeLabel($model, 'member_others') ?>: <?= $model->linksMemberOthers ?>
 				<?php endif; ?>
 				
 				<?php if ($model->user_on_photo): ?>
-					<p><?= Html::activeLabel($model, 'user_on_photo') ?>: <?= $model->linksUserOnPhoto ?>
+					<br /><?= Html::activeLabel($model, 'user_on_photo') ?>: <?= $model->linksUserOnPhoto ?>
 				<?php endif; ?>
 				
 				<?php if ($model->user_on_video): ?>
-					<p><?= Html::activeLabel($model, 'user_on_video') ?>: <?= $model->linksUserOnVideo ?>
+					<br /><?= Html::activeLabel($model, 'user_on_video') ?>: <?= $model->linksUserOnVideo ?>
 				<?php endif; ?>
 										
 			</div>
 			<hr />
-			<div><a href="<?= Url::toRoute(['event/view', 'id'=>$model->id]) ?>" class="btn btn-primary modal-link">Подробнее</a></div>
+			<div><a href="<?= Url::toRoute(['event/view', 'id'=>$model->id]) ?>" class="btn btn-default modal-link">Подробнее</a></div>
 		</div>
 	</div>
 </div>

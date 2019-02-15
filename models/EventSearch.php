@@ -97,21 +97,24 @@ class EventSearch extends Event
      */
     public function searchLike($term)
     {
-        $model = self::find()
-            ->leftJoin('ec_member m_users', 'ec_event.id=m_users.id_event and m_users.type_member='.Event::EVENT_TYPE_MEMBER_USERS)
-            ->leftJoin('ec_member m_organizations', 'ec_event.id=m_organizations.id_event and m_organizations.type_member='.Event::EVENT_TYPE_MEMBER_ORGANIZATIONS)
-            ->leftJoin('ec_member m_others', 'ec_event.id=m_others.id_event and m_others.type_member='.Event::EVENT_TYPE_MEMBER_OTHERS)           
-            ->andWhere('ec_event.date_delete is null')
+        
+        $model = self::find()            
+            ->distinct(true)
+            ->alias('t')
+            ->leftJoin('ec_member m_users', 't.id=m_users.id_event and m_users.type_member='.Event::EVENT_TYPE_MEMBER_USERS)
+            ->leftJoin('ec_member m_organizations', 't.id=m_organizations.id_event and m_organizations.type_member='.Event::EVENT_TYPE_MEMBER_ORGANIZATIONS)
+            ->leftJoin('ec_member m_others', 't.id=m_others.id_event and m_others.type_member='.Event::EVENT_TYPE_MEMBER_OTHERS)           
+            ->andWhere('t.date_delete is null')
             ->andWhere(['or', 
-                ['like', 'theme', $term],
-                ['like', 'location', $term],
+                ['like', 't.theme', $term],
+                ['like', 't.location', $term],
                 ['like', 'm_users.text', $term],
                 ['like', 'm_organizations.text', $term],
                 ['like', 'm_others.text', $term],
             ]);
                 
         return new ActiveDataProvider([
-            'query' => $model,
+            'query' => $model,            
             'pagination' => [
                 'pageSize' => 30,
             ],

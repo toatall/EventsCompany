@@ -7,7 +7,7 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\EventSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Главная';
+$this->title = 'Управление мероприятиями';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="main-index">

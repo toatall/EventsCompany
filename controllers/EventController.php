@@ -27,14 +27,14 @@ class EventController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [                    
                     [
-                        'actions' => ['index', 'view', 'memberuserslist', 'listtheme', 'listlocation', 'listmemberusers'],
+                        'actions' => ['view'],
                         'allow' => true,
                         'roles' => ['admin', 'moderator', 'user'],
                     ],
                     [
-                        'actions' => ['create', 'update', 'delete'],
+                        'actions' => ['index', 'create', 'update', 'delete', 'memberuserslist', 'listtheme', 'listlocation', 'listmemberusers'],
                         'allow' => true,
-                        'roles' => ['admin', 'moderator', 'user'], // @todo - delete user!!!!!
+                        'roles' => ['admin', 'moderator'],
                     ],
                 ],
             ],

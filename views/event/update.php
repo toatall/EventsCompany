@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $model app\models\Event */
 
 $this->title = 'Изменить мероприятие: #' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Главная', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Управление мероприятиями', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Изменить';
 ?>

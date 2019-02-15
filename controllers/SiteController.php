@@ -7,7 +7,6 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
-use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
 use app\models\EventSearch;
@@ -69,7 +68,7 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionIndex($term=null)
+    public function actionIndex($term='')
     {
         $searchModel = new EventSearch();
         return $this->render('index', ['dataProvider' => $searchModel->searchLike($term), 'term'=>$term]);

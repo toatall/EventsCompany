@@ -13,29 +13,30 @@ use yii\widgets\ListView;
 $this->title = 'Электронный архив';
 ?>
 <div class="site-index">    
-
-    <h1><?= $this->title ?></h1>
-    <hr />
-    <div>
+	
+    <div class="jumbotron" style="background-image: url('/images/new_statesman_events.jpg'); background-repeat: no-repeat; color:white; height:300px;">
+        <h1><?= $this->title ?></h1>
+        <p>УФНС России по Ханты-Мансийскому автономному округу - Югре</p>
         <form class="" action="<?= Url::toRoute('site/index') ?>" method="get" role="search">
             <div class="form-group">
                 <div class="input-group">
                     <input type="text" name="term" class="form-control" placeholder="Поиск..." value="<?= $term ?>" />
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-success">Поиск</button>
-                    </span>
+                    <div class="input-group-btn">
+                        <button type="submit" class="btn btn-success" style="height: 34px; font-size: 14px; padding: 6px 12px;">Поиск</button>
+                    </div>
                 </div>                
             </div>
         </form>
     </div>
-
+   
 	<hr />
 	
 	<div class="qa-message-list" id="wallmessages">
 		<?php 
 	       echo ListView::widget([
 	           'dataProvider' => $dataProvider,
-	           'itemView' => '_index',	          
+	           'itemView' => '_index',	   
+	           //'summary'=>'',
 	       ]); 		
 		?>
 	</div>

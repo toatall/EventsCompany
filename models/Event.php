@@ -184,22 +184,7 @@ class Event extends \yii\db\ActiveRecord
     public function getFiles()
     {
         return $this->hasMany(File::className(), ['id_event' => 'id']);
-    }
-       
-    public function getRelationMemberUsers()
-    {
-        return $this->hasMany(Member::className(), ['id_event' => 'id'])->andWhere('type_member=:type', [':type' => self::EVENT_TYPE_MEMBER_USERS]);
-    }
-    
-    public function getRelationMemberOrganizations()
-    {
-        return $this->hasMany(Member::className(), ['id_event' => 'id'])->andWhere('type_member=:type', [':type' => self::EVENT_TYPE_MEMBER_ORGANIZATIONS]);
-    }
-    
-    public function getRelationMemberOthers()
-    {
-        return $this->hasMany(Member::className(), ['id_event' => 'id'])->andWhere('type_member=:type', [':type' => self::EVENT_TYPE_MEMBER_OTHERS]);
-    }
+    }          
     
     /*-------------------- / Relations --------------------*/
     
