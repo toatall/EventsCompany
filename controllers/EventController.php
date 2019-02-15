@@ -25,7 +25,7 @@ class EventController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'rules' => [
+                'rules' => [                    
                     [
                         'actions' => ['index', 'view', 'memberuserslist', 'listtheme', 'listlocation', 'listmemberusers'],
                         'allow' => true,
@@ -46,7 +46,9 @@ class EventController extends Controller
             ],
         ];
     }
-
+    
+    
+    
     
     /** -----------------------------------------------------------------------
      *  < ACTIONS >

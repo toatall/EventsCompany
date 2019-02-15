@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use kartik\select2\Select2;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
@@ -16,14 +17,12 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'userfio')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'rolename')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'date_create')->textInput() ?>
-
-    <?= $form->field($model, 'date_update')->textInput() ?>
-
+    <?= $form->field($model, 'rolename')->widget(Select2::className(), [       
+        'data'=>$model->allRoles,
+    ]) ?>  
+    	
     <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

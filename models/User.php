@@ -20,6 +20,11 @@ use app\models\userinfo\UserInfo;
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
+    /**
+     * Roles
+     * @var array
+     */
+    private $_roles = ['user'=>'user', 'moderator'=>'moderator', 'admin'=>'admin'];
     
     public $password;
     public $authKey;
@@ -206,4 +211,15 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->rolename;
     }
+    
+    /**
+     * Return all roles
+     * @property array $allRoles
+     * @return array
+     */
+    public function getAllRoles()
+    {
+        return $this->_roles;
+    }
+    
 }
