@@ -802,7 +802,7 @@ class Event extends \yii\db\ActiveRecord
             $query->where = ['like', $field, $term];
         }
         
-        return ArrayHelper::map($query->all(), 'id', $field);
+        return ArrayHelper::map($query->orderBy($field)->all(), 'id', $field);
     }
     
 }
