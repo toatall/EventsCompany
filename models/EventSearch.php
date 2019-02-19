@@ -96,8 +96,7 @@ class EventSearch extends Event
      * @return \yii\data\ActiveDataProvider
      */
     public function searchLike($term)
-    {
-        
+    {        
         $model = self::find()                        
             ->alias('t')
             ->leftJoin('ec_member m_users', 't.id=m_users.id_event and m_users.type_member='.Event::EVENT_TYPE_MEMBER_USERS)
@@ -110,10 +109,11 @@ class EventSearch extends Event
                 ['like', 'm_users.text', $term],
                 ['like', 'm_organizations.text', $term],
                 ['like', 'm_others.text', $term],
-            ]);
-                
+            ])
+            ->groupBy(['id', 'date1', 'date2', 'date_activity', 'theme', 'location', 'is_photo', 'is_video', 'photo_path', 'video_path', 
+                'username', 'log_change', 'tags', 'thumbnail', 'date_create', 'date_update', 'date_delete', 'org_code', 'description']);
+                    
         return new ActiveDataProvider([
-            'totalCount'=>$model->distinct(true)->count(),            
             'query' => $model,            
             'pagination' => [
                 'pageSize' => 30,
@@ -121,4 +121,5 @@ class EventSearch extends Event
             'sort'=> ['defaultOrder' => ['date_activity'=>SORT_DESC]],
         ]);
     }
+       
 }
