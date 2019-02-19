@@ -32,9 +32,16 @@ $this->params['breadcrumbs'][] = $this->title;
             'username',
             'userfio',
             'rolename',
+            [
+                'attribute'=>'organizations',
+                'value'=>function($data) {
+                    return implode('<br />', $data->organizationsList);
+                },
+                'format'=>'raw',
+            ],
             'date_create',
             'date_update',
         ],
     ]) ?>
-
+	
 </div>

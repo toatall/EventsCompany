@@ -13,8 +13,8 @@ use yii\widgets\ListView;
 $this->title = 'Электронный архив';
 ?>
 <div class="site-index">    
-	
-    <div class="jumbotron" style="background-image: url('/images/new_statesman_events.jpg'); background-repeat: no-repeat; color:white; height:300px;">
+	<div class="well">
+    	<div class="jumbotron">    	
         <h1><?= $this->title ?></h1>
         <p>УФНС России по Ханты-Мансийскому автономному округу - Югре</p>
         <form class="" action="<?= Url::toRoute('site/index') ?>" method="get" role="search">
@@ -26,9 +26,9 @@ $this->title = 'Электронный архив';
                     </div>
                 </div>                
             </div>
-        </form>
-    </div>
-   
+        </form>        
+    	</div>
+   </div>
 	<hr />
 	
 	<div class="qa-message-list" id="wallmessages">

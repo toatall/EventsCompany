@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\models\userinfo\UserInfo;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "ec_user".
@@ -24,7 +25,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      * Roles
      * @var array
      */
-    private $_roles = ['user'=>'user', 'moderator'=>'moderator', 'admin'=>'admin'];
+    private $_roles = ['user'=>'user', 'moderator'=>'moderator', 'admin'=>'admin'];    
+    
+    /***
+     * Organizations
+     * @var array
+     */
+    private $_organizations;
     
     public $password;
     public $authKey;
@@ -43,9 +50,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'date_create'], 'required'],
-            [['date_create', 'date_update'], 'safe'],
-            [['access_org'], 'string'],
+            [['username'], 'required'],
+            [['organizations'], 'safe'],           
             [['username'], 'string', 'max' => 250],
             [['userfio'], 'string', 'max' => 500],
             [['rolename'], 'string', 'max' => 30],
@@ -61,13 +67,16 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return [
             'username' => 'Логин',
             'userfio' => 'ФИО',
-            'rolename' => 'Роль',
-            'access_org' => 'Доступные организации',
+            'rolename' => 'Роль',         
             'date_create' => 'Дата создания',
-            'date_update' => 'Дата изменения',            
+            'date_update' => 'Дата изменения',    
+            'organizations' => 'Организации',
         ];
     }
-
+    
+    
+    /* ----------------------- Relations --------------------*/
+    
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -83,7 +92,37 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->hasMany(File::className(), ['username' => 'username']);
     }
-
+    
+    /* ----------------------- / Relations --------------------*/
+    
+    
+    /* ----------------------- Events --------------------*/
+    
+    /**
+     * {@inheritDoc}
+     * @see \yii\db\BaseActiveRecord::beforeSave()
+     */
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert))
+            return false;            
+                
+        if ($this->isNewRecord)
+        {
+            $this->date_create = DateHelper::currentDateTime();
+        }
+        else
+        {
+            $this->date_update = DateHelper::currentDateTime();
+            $this->date_create = DateHelper::writeDateTime($this->date_create, true);                       
+        }
+        
+        return true;        
+    }
+    
+    /* ----------------------- / Events --------------------*/
+    
+    
     /**
      * {@inheritdoc}
      * @return UserQuery the active query used by this AR class.
@@ -92,8 +131,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return new UserQuery(get_called_class());
     }
-    
-    
+        
     /**
      * {@inheritdoc}
      */
@@ -109,6 +147,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {        
         return null;
     }
+    
+    
     
     /**
      * Finds user by username
@@ -154,21 +194,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function validatePassword($password)
     {
         return $this->password === $password;
-    }
-    
-    /**
-     * {@inheritDoc}
-     * @see \yii\db\BaseActiveRecord::beforeSave()
-     */
-    public function beforeSave($insert)
-    {
-        if (!parent::beforeSave($insert))
-        {
-            return false;
-        }
-        
-        return true;        
-    }
+    }       
     
     /**
      * Login user
@@ -213,6 +239,72 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function getAllRoles()
     {
         return $this->_roles;
+    }
+    
+    /**
+     * @property string $organizationsList
+     */
+    public function getOrganizationsList()
+    {
+        $query = Organization::find()
+            ->distinct(true)            
+            ->alias('t')
+            ->join('join', 'ec_user_organization u_org', 't.code=u_org.org_code')            
+            ->where('u_org.username=:username', [':username'=>$this->username])
+            ->all();        
+        return ArrayHelper::map($query, 'code', 'full');
+    }
+    
+    /**
+     * @property organizations
+     * @return array
+     */
+    public function getOrganizations()
+    {
+        $query = (new \yii\db\Query())        
+            ->select('org_code')
+            ->from('ec_user_organization')
+            ->where('username=:username', [':username'=>$this->username])
+            ->all();
+        
+        return ArrayHelper::map($query, 'org_code', 'org_code');
+    }
+    
+    /**
+     * @property string $organizations
+     * @param string $value
+     */
+    public function setOrganizations($value)
+    {        
+        $this->saveOrganizations($value);
+    }
+    
+    /**
+     * Save organizations in table `ec_user_organizations`
+     * @param array $organizations
+     */
+    private function saveOrganizations($organizations)
+    {
+        if (!is_array($organizations))
+            return;
+        
+        // delete old organizations
+        \Yii::$app->db->createCommand()
+            ->delete('ec_user_organization', 'username=:username', [':username'=>$this->username])
+            ->execute();        
+        
+        // save new organizations
+        if ($this->rolename == 'admin')
+            return;
+        
+        foreach ($organizations as $org)
+        {
+            \Yii::$app->db->createCommand()
+                ->insert('ec_user_organization', [
+                    'username' => $this->username,
+                    'org_code' => $org,
+                ])->execute();
+        }
     }
     
 }

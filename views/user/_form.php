@@ -3,6 +3,7 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use kartik\select2\Select2;
+use app\models\Organization;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
@@ -20,6 +21,10 @@ use kartik\select2\Select2;
     <?= $form->field($model, 'rolename')->widget(Select2::className(), [       
         'data'=>$model->allRoles,
     ]) ?>  
+    
+    <div class="well" id="organizations_div">
+    	<?= $form->field($model, 'organizations')->checkboxList(Organization::allOrganizaions()) ?>
+    </div>         
     	
     <div class="form-group">
         <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
@@ -28,3 +33,9 @@ use kartik\select2\Select2;
     <?php ActiveForm::end(); ?>
 
 </div>
+<script type="text/javascript">
+	$('#<?= Html::getInputId($model, 'rolename') ?>').on('change', function() {		
+		$('#organizations_div').toggle($(this).val() !== 'admin');
+	});
+	$('#organizations_div').toggle($('#<?= Html::getInputId($model, 'rolename') ?>').val() !== 'admin');	
+</script>

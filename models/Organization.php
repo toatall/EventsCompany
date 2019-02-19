@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "ec_organization".
@@ -66,8 +67,24 @@ class Organization extends \yii\db\ActiveRecord
         return new OrganizationQuery(get_called_class());
     }
     
+    /**
+     * Return name organization with code
+     * @property string full
+     * @return string
+     */
     public function getFull()
     {
         return $this->name . " ({$this->code})";
     }
+    
+    /**
+     * Return all organizaions
+     * @return array
+     */
+    public static function allOrganizaions()
+    {
+        $query = self::find()->all();
+        return ArrayHelper::map($query, 'code', 'full');  
+    }
+    
 }
