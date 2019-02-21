@@ -9,8 +9,61 @@ use yii\helpers\Url;
  */
 
 ?>
+
+
 <?php 
-    
+/*
+    $year = date('Y', strtotime($model->date_activity));
+
+    if (Event::$currentYear != $year)
+    {
+        Event::$currentYear = $year;
+        ?>
+        <div class="page-header">
+            <div class="">
+            <p style="color: #428bca; font-size:60px; font-weight: bold;"><?= $year ?></p>
+        	</div>
+    	</div>
+        <?php 
+    }*/      
+?>
+	
+<div class="well col-sm-4 col-md-4" style="height:500px;">
+	<div class="article_snippet">
+		<div class="article_snippet__image_wrap">
+    		<div class="article_snippet__image" style="wight:100%; height:100%; background: url('<?= $model->thumbnailImageSrc ?>'); background-position: 50%;"></div>
+		</div>
+    	<div class="article_snippet__fade"></div>
+		<div class="article_snippet__info">
+			<div class="article_snippet__title">
+				<?= $model->theme ?>
+			</div>
+			<div>
+				<?php if ($model->is_photo): ?>
+    				<span class="label label-default">Фото</span>
+    				<?php endif; ?>
+    				<?php if ($model->is_video): ?> 
+    				<span class="label label-default">Видео</span>
+    				<?php endif; ?>
+			</div>
+			<div class="article_snippet__author">
+				<?= date('d', strtotime($model->date_activity)) ?>
+            	<?= DateHelper::monthByIndex(date('m', strtotime($model->date_activity))) ?>
+            	<?= date('Y', strtotime($model->date_activity)) ?>
+            	<hr />            	
+    		</div>			
+			<!-- button class="article_snippet__read_btn flat_button"><i class="glyphicon glyphicon-flash"></i> Читать</button-->
+			<a href="<?= Url::toRoute(['event/view', 'id'=>$model->id]) ?>" class="btn btn-default article_snippet__read_btn modal-link">
+				<i class="glyphicon glyphicon-flash"></i> Читать
+			</a>
+		</div>	
+	</div>	
+</div>
+
+
+
+<?php 
+    /*
     $year = date('Y', strtotime($model->date_activity));
     
     if (Event::$currentYear != $year)
@@ -86,3 +139,4 @@ use yii\helpers\Url;
 		</div>
 	</div>
 </div>
+<? */ ?>

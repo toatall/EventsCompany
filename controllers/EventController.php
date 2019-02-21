@@ -11,6 +11,7 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\helpers\Json;
 use yii\web\UploadedFile;
+use app\models\DateHelper;
 
 /**
  * EventController implements the CRUD actions for Event model.
@@ -27,7 +28,7 @@ class EventController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [                    
                     [
-                        'actions' => ['view'],
+                        'actions' => ['view', 'index_ajax'],
                         'allow' => true,
                         'roles' => ['admin', 'moderator', 'user'],
                     ],
@@ -59,11 +60,18 @@ class EventController extends Controller
      * Lists all Event models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex($term=null)
     {
         $searchModel = new EventSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+        if (\Yii::$app->request->isAjax)
+            return $this->renderPartial('indexAjax', [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+                'pagination' => $dataProvider->getPagination(),
+            ]);
+        
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -161,14 +169,72 @@ class EventController extends Controller
         return $this->redirect(['index']);
     }
     
+    public function actionIndex_ajax($term=null, $organization=null, $column=null, $sort=null)
+    {        
+        
+        $searchModel = new EventSearch();
+        $dataProvider = $searchModel->searchLike($term);
+        print_r($dataProvider->getModels());exit;
+        
+        
+        // find first 30 records
+        $result = new \yii\db\Query();
+        $result = $result->from('ec_event t')->limit(30);
+        // sort
+        if ($sort != null && in_array($sort, ['date_activity-', 'date_activity', 'id', 'id-']))
+        {
+            $sort = str_replace('-', ' desc', $sort);
+        }
+        else 
+        {
+            $sort = 'date_activity desc';
+        }
+        
+        // where
+        if ($column!=null && in_array($column, ['all', 'term', 'description', 'location', 'member_users', 
+            'member_organizations', 'member_others', 'user_on_photo', 'user_on_video', 'date_activity']))
+        {
+            if ($column == 'all')
+            {
+                $result = $result->where('theme=:term1 or ');
+            }
+            else
+            {
+                
+            }
+        } 
+        elseif ($term!=null)
+        {
+            exit('term elseif');
+        }
+        
+        $result = $result->all();
+        
+        // search years
+        $years = []; $modelByYears = [];     
+        foreach ($result as $r)
+        {
+            $y = (isset($r['date_activity']) ? date('Y', strtotime($r['date_activity'])) : '');
+            if (!in_array($y, $years))
+                $years[] = $y;    
+            $modelByYears[$y][] = $r;
+        }
+        return $this->renderAjax('indexAjax', [
+            'years'=>$years,
+            'model'=>$result,
+            'modelByYears' => $modelByYears,
+        ]);
+    }
+    
+    
     /**
      * Return list themes
      * @param string $term
      * @return string
      */
-    public function actionListtheme($term=null)    
+    public function actionListtheme($term=null)
     {        
-        return Json::encode(Event::listField('theme', $term));
+        return json::encode(Event::listField('theme', $term));
     }
     
     /**
@@ -178,7 +244,7 @@ class EventController extends Controller
      */
     public function actionListlocation($term=null)
     {        
-        return Json::encode(Event::listField('location', $term));        
+        return Json::encode(Event::listField('location', $term));
     }
     
     /**

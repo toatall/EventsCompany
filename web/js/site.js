@@ -1,4 +1,5 @@
 const LOAD_IMAGE = '<img src="/images/loader_fb.gif" style="width:50px;" />';
+const LOAD_IMAGE2 = '<img src="/images/loading-animations.gif" class="center" />';
 
 function ajaxJson(url, container_title, container_body, image_loader)
 {
@@ -37,4 +38,29 @@ function ajaxJson(url, container_title, container_body, image_loader)
         $(container_body).html(error_text);        
     });
     
+}
+
+
+function loadEvents(url)
+{
+    $('#events-conrainer').html(LOAD_IMAGE2);
+    
+    $.ajax({
+        url: url,    
+    })
+    .done(function (data) {
+    	$('#events-conrainer').html(data);    	        
+    })
+    .fail(function (jqXHR) {
+        var error_text = '<div class="alert alert-danger">' + jqXHR.status + ' ' + jqXHR.statusText + '</div>';        
+        $('#events-conrainer').html(error_text);        
+    });
+    
+}
+
+function replaceUrl(url, term, organization)
+{
+	var res = url.replace('_term_', term);
+	res = res.replace('_organization_', organization);
+	return res;
 }

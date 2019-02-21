@@ -23,7 +23,7 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions'=>['error'],
+                        'actions'=>['error', 'fault'],
                         'allow'=>true,
                     ],
                     [
@@ -68,10 +68,24 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionIndex($term='')
+    public function actionIndex($term='', $org='')
     {
         $searchModel = new EventSearch();
-        return $this->render('index', ['dataProvider' => $searchModel->searchLike($term), 'term'=>$term]);
+        
+        if ($term != '')
+            $searchModel->term = $term;
+        if ($org != '')
+            $searchModel->org_code = $org;
+        
+        $dataProvider = $searchModel->searchLike(Yii::$app->request->queryParams);
+            
+        if ($searchModel->error != null)
+            return $this->redirect(['site/fault', 'message'=>$searchModel->error]);
+        
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,       
+        ]);
     }
 
     /**
@@ -129,5 +143,10 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+    
+    public function actionFault($message = '')
+    {
+        return $this->render('fault', ['message' => $message]);
     }
 }

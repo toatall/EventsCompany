@@ -11,6 +11,10 @@ use yii\data\SqlDataProvider;
  */
 class EventSearch extends Event
 {
+    
+    public $term = '';
+    public $error = null;
+    
     /**
      * {@inheritdoc}
      */
@@ -21,6 +25,7 @@ class EventSearch extends Event
             [['theme', 'date1', 'date2', 'description', 'member_users', 'member_organizations', 'photo_path', 
                 'video_path', 'date_create', 'date_update', 'date_delete', 'username', 'log_change', 'tags', 
                 'date_activity', 'thumbnail', 'location', 'members_other', 'user_on_photo', 'user_on_video'], 'safe'],
+            [['term', 'org_code'], 'safe'],
         ];
     }
 
@@ -49,6 +54,9 @@ class EventSearch extends Event
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort'=> ['defaultOrder' => ['date_activity'=>SORT_DESC]],
+            'pagination' => [
+                'pageSize' => 30,
+            ],
         ]);
 
         $this->load($params);
@@ -95,20 +103,37 @@ class EventSearch extends Event
      * @param string $term
      * @return \yii\data\ActiveDataProvider
      */
-    public function searchLike($term)
+    public function searchLike($params)
     {        
-        $model = self::find()                        
+        sleep(3);
+        $this->load($params);
+        if ($this->org_code == null)
+        {
+            $org = Organization::find()->one();            
+            if ($org==null)  
+            {
+                $this->error = 'Не создано ни одной орагнизации!';                
+            }
+            else
+            {
+                $this->org_code = $org->code;
+            }
+            
+        }
+        
+        $model = self::find()
             ->alias('t')
             ->leftJoin('ec_member m_users', 't.id=m_users.id_event and m_users.type_member='.Event::EVENT_TYPE_MEMBER_USERS)
             ->leftJoin('ec_member m_organizations', 't.id=m_organizations.id_event and m_organizations.type_member='.Event::EVENT_TYPE_MEMBER_ORGANIZATIONS)
             ->leftJoin('ec_member m_others', 't.id=m_others.id_event and m_others.type_member='.Event::EVENT_TYPE_MEMBER_OTHERS)           
             ->andWhere('t.date_delete is null')
+            ->andWhere('t.org_code=:org_code', [':org_code'=>$this->org_code])
             ->andWhere(['or', 
-                ['like', 't.theme', $term],
-                ['like', 't.location', $term],
-                ['like', 'm_users.text', $term],
-                ['like', 'm_organizations.text', $term],
-                ['like', 'm_others.text', $term],
+                ['like', 't.theme', $this->term],
+                ['like', 't.location', $this->term],
+                ['like', 'm_users.text', $this->term],
+                ['like', 'm_organizations.text', $this->term],
+                ['like', 'm_others.text', $this->term],
             ])
             ->groupBy(['id', 'date1', 'date2', 'date_activity', 'theme', 'location', 'is_photo', 'is_video', 'photo_path', 'video_path', 
                 'username', 'log_change', 'tags', 'thumbnail', 'date_create', 'date_update', 'date_delete', 'org_code', 'description']);
@@ -116,7 +141,7 @@ class EventSearch extends Event
         return new ActiveDataProvider([
             'query' => $model,            
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 2,
             ],
             'sort'=> ['defaultOrder' => ['date_activity'=>SORT_DESC]],
         ]);

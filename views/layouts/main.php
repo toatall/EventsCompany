@@ -23,14 +23,23 @@ AppAsset::register($this);
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
     <link href="/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="/css/all.min.css" rel="stylesheet"></link>
     <?= $this->registerJsFile('/js/bootstrap-datepicker.min.js', ['position' => yii\web\View::POS_END]) ?>
     <?= $this->registerJsFile('/js/bootstrap-datepicker.ru.min.js', ['position' => yii\web\View::POS_END]) ?>
     <?= $this->registerJsFile('/js/site.js', ['position' => yii\web\View::POS_END]) ?>
     <?= $this->registerJsFile('/js/typeahead.bundle.min.js', ['position' => yii\web\View::POS_END]) ?>
-    <link href="/css/timeline.css" rel="stylesheet">
+    <link href="/css/timeline.css" rel="stylesheet"></link>
+    <link href="/css/flip.css" rel="stylesheet"></link>
+    <link href="/css/up_button.css" rel="stylesheet"></link>
+    
+    <?= $this->registerJsFile('/js/up_button.js') ?>
 </head>
 <body>
 <?php $this->beginBody() ?>
+
+<a id="button-up">
+	<span class="fas fa-angle-up"></span>
+</a>
 
 <div class="wrap">
     <?php
@@ -38,7 +47,7 @@ AppAsset::register($this);
         'brandLabel' => Yii::$app->name,
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
-            'class' => 'navbar-default navbar-fixed-top',
+            'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
     echo Nav::widget([
@@ -60,16 +69,18 @@ AppAsset::register($this);
                         )
                     . Html::endForm()
                     . '</li>'
-                    )
+                    ),                
         ],
     ]);
     NavBar::end();
     ?>
-
-    <div class="container">
+		
+    <div class="container-fluid" style="margin-top: 80px;">  
+    
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
+              
         <?= Alert::widget() ?>
         <?= $content ?>
     </div>

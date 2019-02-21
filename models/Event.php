@@ -354,7 +354,7 @@ class Event extends \yii\db\ActiveRecord
             {
                 if ($lnk != '')
                     $lnk .= ', ';
-                    $lnk .= Html::a($item, ['site/index', 'term'=>trim($item)], ['target'=>'_blank']);
+                    $lnk .= Html::a($item, ['site/index', 'term'=>trim($item), 'org'=>$this->org_code], ['target'=>'_blank']);
             }
             return $lnk;
     }
@@ -606,6 +606,13 @@ class Event extends \yii\db\ActiveRecord
     {
         if (is_file(Yii::$app->basePath . '/web' . $this->thumbnail))
             return $this->thumbnail;
+            return '/images/no_image_available.jpeg';
+    }
+    
+    public static function thumnnailImageSrc($img)
+    {
+        if (is_file(Yii::$app->basePath . '/web' . $img))
+            return $img;
             return '/images/no_image_available.jpeg';
     }
     
