@@ -612,8 +612,20 @@ class Event extends \yii\db\ActiveRecord
     public static function thumnnailImageSrc($img)
     {
         if (is_file(Yii::$app->basePath . '/web' . $img))
-            return $img;
-            return '/images/no_image_available.jpeg';
+        {
+            $pathInfo = pathinfo(Yii::$app->basePath . '/web' . $img);
+            $smallThumbnail = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_small.' . $pathInfo['extension'];
+            if (!is_file($smallThumbnail))
+            {
+                $image = new ImageHelper();
+                $image->load(Yii::$app->basePath . '/web' . $img);
+                if ($image->getHeight() > 500)
+                    $image->resizeToHeight(500);
+                $image->save($smallThumbnail);
+            }   
+            return str_replace(Yii::$app->basePath . '/web', '', $smallThumbnail);
+        }
+        return '/images/no_image_available.jpeg';
     }
     
     /*---------------- / Thumbnail -----------------------*/
