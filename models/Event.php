@@ -114,7 +114,7 @@ class Event extends \yii\db\ActiveRecord
             [['is_photo', 'is_video'], 'integer'],
             [['delThumbnail'], 'boolean'],
             [['username'], 'string', 'max' => 250],            
-            [['member_users', 'member_organizations', 'member_others', 'user_on_photo', 'user_on_video'], 'safe'],
+            [['member_users', 'member_organizations', 'member_others', 'user_on_photo', 'user_on_video', 'delAttachmentFiles'], 'safe'],
             [['theme', 'photo_path', 'video_path', 'thumbnail'], 'string', 'max' => 500],
             [['location'], 'string', 'max' => 2000],
             [['username'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['username' => 'username']],
@@ -568,9 +568,9 @@ class Event extends \yii\db\ActiveRecord
         {
             $fileUpload = 'uploads/' . $this->generateName($this->thumbnailImage->extension, 'thumbnail_');
             $this->thumbnail = '/' . $fileUpload;
-            $this->thumbnailImage->saveAs($fileUpload);
+            $res = $this->thumbnailImage->saveAs(Yii::$app->basePath . '/web/' . $fileUpload);           
             $this->thumbnailImage = null;
-            return true;
+            return $res;
         }
         $this->thumbnailImage = null;
         return false;
@@ -622,18 +622,22 @@ class Event extends \yii\db\ActiveRecord
     
     /*---------------- Attachments -----------------------*/
     
-    /**
-     * Upload attachments
-     * @category attachments
-     */
-    public function uploadAttachmentFiles()
-    {
+    public function deleteSelectedAttachemnts()
+    {       
         // Delete selected attachments
         if ($this->delAttachmentFiles != null && is_array($this->delAttachmentFiles))
         {
             $this->deleteAttachmentFiles($this->delAttachmentFiles);
         }
-       
+    }
+    
+    
+    /**
+     * Upload attachments
+     * @category attachments
+     */
+    public function uploadAttachmentFiles()
+    {        
         // Upload attachments
         if ($this->attachmentFiles != null)
         {
@@ -689,11 +693,13 @@ class Event extends \yii\db\ActiveRecord
         foreach ($query->all() as $file)
         {
             $fileName = Yii::$app->basePath . '/web' . $file['filename_path'];
-            
+                        
             // Delete file from disk
             if (file_exists($fileName))
+            {
                 if (!@FileHelper::unlink($fileName))
                     continue;
+            }
                     
             // Delete from the `ec_table` table
             Yii::$app->db->createCommand()
@@ -799,6 +805,7 @@ class Event extends \yii\db\ActiveRecord
     {
         $query = (new \yii\db\Query())
             ->select("id, {$field}")
+            ->distinct(true)
             ->from('ec_event')
             ->distinct();
         
@@ -808,6 +815,39 @@ class Event extends \yii\db\ActiveRecord
         }
         
         return ArrayHelper::map($query->orderBy($field)->all(), 'id', $field);
+    }
+    
+    /**
+     * Save query from user to tables `ec_query` and `ec_query_log`
+     */
+    protected function saveTerm()
+    {
+        if ($this->term!=null)
+        {
+            // save query
+            $query = new \yii\db\Query();
+            $resultQuery = $query->from('ec_query')
+                ->where('text=:text', [':text'=>$this->term])
+                ->exists();
+            if (!$resultQuery)
+            {
+                \Yii::$app->db->createCommand()->insert('ec_query', [
+                    'org_code' => $this->org_code,
+                    'text' => $this->term,
+                    'text_right' => $this->term,
+                    'date_create' => DateHelper::currentDateTime(),
+                ])->execute();
+            }
+            
+            // save query log
+            \Yii::$app->db->createCommand()->insert('ec_query_log', [
+                'org_code' => $this->org_code,
+                'text' => $this->term,
+                'str_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+                'username' => Yii::$app->user->identity->username,
+                'date_create' => DateHelper::currentDateTime(),
+            ])->execute();
+        }
     }
     
 }

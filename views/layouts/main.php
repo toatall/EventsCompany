@@ -74,22 +74,27 @@ AppAsset::register($this);
     ]);
     NavBar::end();
     ?>
-		
-    <div class="container-fluid" style="margin-top: 80px;">  
+	<div class="container-fluid" style="margin-top: 80px;">   		
+    	<div class="row">
+    		<div class="col-md-1 col-lg-1"></div>
+    		<div class="col-md-10 col-lg-10">
+        		      
+                <?= Breadcrumbs::widget([
+                    'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
+                ]) ?>                      
+                <?= Alert::widget() ?>
+                <?= $content ?>
+                
+    		</div>
+    		<div class="col-md-1 col-lg-1"></div>
+    	</div>	
+	</div>			
     
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
-        ]) ?>
-              
-        <?= Alert::widget() ?>
-        <?= $content ?>
-    </div>
 </div>
 
 <footer class="footer">
     <div class="container">
         <p class="pull-left">&copy; УФНС России по ХМАО-Югре <?= date('Y') ?></p>
-
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>
 </footer>

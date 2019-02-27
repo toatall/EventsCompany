@@ -15,7 +15,7 @@ use kartik\select2\Select2;
 <div class="main-form">
 
     <?php $form = ActiveForm::begin([
-        'options'=> ['enctype' => 'multipart/form-data', 'autocomplete'=>'off']]); ?>
+        'options'=> ['enctype' => 'multipart/form-data', 'autocomplete'=>'off', 'id'=>'event-form']]); ?>
         
    	<?= $form->errorSummary($model) ?>
    	
@@ -174,14 +174,15 @@ use kartik\select2\Select2;
 <script type="text/javascript">
 
 	$(document).ready(function() {
-		
+
+		// datepicker		
 		$('input[data-type="date"]').datepicker({
 			todayBtn: true,
 			language: "ru",
 			autoclose: true,
 			todayHighlight: true
 		});
-
+		
 		var chkPhoto = '#<?= Html::getInputId($model, 'is_photo') ?>';		
 		$('#panel-photo').toggle($(chkPhoto).prop('checked'));
 		$(chkPhoto).change(function() {
@@ -193,7 +194,14 @@ use kartik\select2\Select2;
 		$(chkVideo).change(function() {
 			$('#panel-video').slideToggle($(this).prop('checked'));
 		});
-				
+
+    <?php if (Yii::$app->request->isAjax): ?>
+    	$('#event-form').submit(function(e) {
+    		ajaxJson($(this).attr('action'),'#modal-title', '#modal-body', false, 'POST', new FormData(this));				
+    		e.preventDefault();	
+    		return false;
+    	});
+    <?php endif;?>
 	});
 	
 

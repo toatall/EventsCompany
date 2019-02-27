@@ -11,7 +11,7 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\helpers\Json;
 use yii\web\UploadedFile;
-use app\models\DateHelper;
+use yii\helpers\ArrayHelper;
 
 /**
  * EventController implements the CRUD actions for Event model.
@@ -33,7 +33,8 @@ class EventController extends Controller
                         'roles' => ['admin', 'moderator', 'user'],
                     ],
                     [
-                        'actions' => ['index', 'create', 'update', 'delete', 'memberuserslist', 'listtheme', 'listlocation', 'listmemberusers'],
+                        'actions' => ['index', 'create', 'update', 'delete', 'query-remove', 'query',
+                            'memberuserslist', 'listtheme', 'listlocation', 'listmemberusers'],
                         'allow' => true,
                         'roles' => ['admin', 'moderator'],
                     ],
@@ -60,7 +61,7 @@ class EventController extends Controller
      * Lists all Event models.
      * @return mixed
      */
-    public function actionIndex($term=null)
+    public function actionIndex()
     {
         $searchModel = new EventSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -106,11 +107,14 @@ class EventController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate($org=null)
     {
         $model = new Event();
         
-        if ($model->load(Yii::$app->request->post())) {            
+        if ($org!=null)
+            $model->org_code=$org;
+        
+        if ($model->load(Yii::$app->request->post())) {
             
             $model->thumbnailImage = UploadedFile::getInstance($model, 'thumbnailImage');
             $model->uploadThumbnail();
@@ -119,9 +123,27 @@ class EventController extends Controller
             {
                 $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');
                 $model->uploadAttachmentFiles();
+                if (\Yii::$app->request->isAjax)
+                {
+                    $resultJson = [
+                        'title'=>$model->theme,
+                        'content' => $this->renderAjax('resultSuccess', ['message'=>'Событие успешно сохранено!']),
+                    ];
+                    return Json::encode($resultJson);
+                }
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         }
+        
+        if (\Yii::$app->request->isAjax)
+        {
+            $resultJson = [
+                'title' => 'Новое событие',
+                'content' => $this->renderAjax('create', ['model'=>$model]),
+            ];
+            return Json::encode($resultJson);            
+        }
+        
         return $this->render('create', [
             'model' => $model,
         ]);
@@ -139,17 +161,36 @@ class EventController extends Controller
         $model = $this->findModel($id);
         
         if ($model->load(Yii::$app->request->post())) {
+            
             $model->thumbnailImage = UploadedFile::getInstance($model, 'thumbnailImage');
             $model->attachmentFiles = UploadedFile::getInstances($model, 'uploadFiles');
             $model->uploadThumbnail();
             if ($model->save())
-            {
-                $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');
+            {               
+                $model->deleteSelectedAttachemnts();
+                $model->attachmentFiles = UploadedFile::getInstances($model, 'attachmentFiles');                
                 $model->uploadAttachmentFiles();
+                if (\Yii::$app->request->isAjax)
+                {
+                    $resultJson = [
+                        'title'=>$model->theme,
+                        'content' => $this->renderAjax('resultSuccess', ['message'=>'Событие успешно сохранено!']),
+                    ];
+                    return Json::encode($resultJson);
+                }                
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         }
         
+        if (\Yii::$app->request->isAjax)
+        {
+            $resultJson = [
+                'title'=>$model->theme,
+                'content' => $this->renderAjax('update', ['model'=>$model]),
+            ];
+            return Json::encode($resultJson);            
+        }
+            
         return $this->render('update', [
             'model' => $model,
         ]);
@@ -165,10 +206,11 @@ class EventController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
+        if (!\Yii::$app->request->isAjax)
+            return $this->redirect(['index']);
     }
     
+    /*
     public function actionIndex_ajax($term=null, $organization=null, $column=null, $sort=null)
     {        
         
@@ -225,7 +267,7 @@ class EventController extends Controller
             'modelByYears' => $modelByYears,
         ]);
     }
-    
+    */
     
     /**
      * Return list themes
@@ -327,6 +369,34 @@ class EventController extends Controller
     }
     */
     
+    
+    public function actionQueryRemove($id)
+    {
+        $model = $this->findModel($id);
+        
+        $resultJson = [
+            'title'   => $model->theme,
+            'content' => $this->renderPartial('remove', ['model'=>$model]),
+        ];
+        return Json::encode($resultJson);
+    }
+    
+    public function actionQuery($term)
+    {
+        if ($term==null)
+            return null;
+        
+        $query = new \yii\db\Query();
+        $resultQuery = $query->from('ec_query')
+            ->distinct(true)            
+            ->where(['like', 'text', $term])
+            ->orWhere(['like', 'text_right', $term])
+            ->all();
+        
+        return Json::encode(ArrayHelper::map($resultQuery, 'text_right', 'text_right'));
+    }
+        
+        
     /** 
      *  < / ACTIONS >
      *  -----------------------------------------------------------------------

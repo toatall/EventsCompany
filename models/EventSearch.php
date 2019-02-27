@@ -4,7 +4,7 @@ namespace app\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use yii\data\SqlDataProvider;
+use yii\bootstrap\Html;
 
 /**
  * EventSearch represents the model behind the search form of `app\models\Event`.
@@ -105,21 +105,21 @@ class EventSearch extends Event
      */
     public function searchLike($params)
     {        
-        sleep(3);
         $this->load($params);
         if ($this->org_code == null)
         {
             $org = Organization::find()->one();            
             if ($org==null)  
             {
-                $this->error = 'Не создано ни одной орагнизации!';                
+                $this->error = "Необходимо добавить организацию!<br />" . Html::a('Управление организациями', ['organization/index']);
             }
             else
             {
                 $this->org_code = $org->code;
-            }
-            
+            }            
         }
+        
+        $this->saveTerm();
         
         $model = self::find()
             ->alias('t')
@@ -141,7 +141,7 @@ class EventSearch extends Event
         return new ActiveDataProvider([
             'query' => $model,            
             'pagination' => [
-                'pageSize' => 2,
+                'pageSize' => 30,
             ],
             'sort'=> ['defaultOrder' => ['date_activity'=>SORT_DESC]],
         ]);

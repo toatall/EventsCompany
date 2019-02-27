@@ -80,7 +80,7 @@ class SiteController extends Controller
         $dataProvider = $searchModel->searchLike(Yii::$app->request->queryParams);
             
         if ($searchModel->error != null)
-            return $this->redirect(['site/fault', 'message'=>$searchModel->error]);
+            return $this->render('fault', ['message'=>$searchModel->error]);
         
         return $this->render('index', [
             'searchModel' => $searchModel,

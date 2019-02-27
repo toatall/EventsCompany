@@ -2,6 +2,7 @@
 use app\models\DateHelper;
 use yii\helpers\Url;
 use app\models\Event;
+use yii\bootstrap\Html;
 
     /**     
      * @var array $years
@@ -20,31 +21,7 @@ use app\models\Event;
 		<div class="row page-header text-center">                
             <p style="color: #428bca; font-size:60px; font-weight: bold;"><?= Event::$currentYear ?></p>
     	</div>  
-        <?php 
-        
-        /*
-        if (Event::$currentYear != 0)
-        {
-            ?>
-				</div>
-        	</div>
-        	<div class="col-md-1 col-lg-1"></div>        		       
-		</div>
-            <?php 
-        }
-        
-        Event::$currentYear = date('Y', strtotime($model->date_activity));
-        
-        ?>
-        <div class="row page-header text-center">                
-            <p style="color: #428bca; font-size:60px; font-weight: bold;"><?= Event::$currentYear ?></p>
-    	</div>        	
-    	<div class="row">
-    		<div class="col-md-1 col-lg-1"></div>
-    		<div class="col-md-10 col-lg-10">
-    			<div class="row">
-        <?php 
-        */
+        <?php        
     }
     ?>
 
@@ -79,8 +56,12 @@ use app\models\Event;
                 			<i class="glyphicon glyphicon-pencil"></i> <span class="caret"></span>
                 		</button>
 						<ul class="dropdown-menu">
-                            <li><a href="#">Изменить</a></li>
-                            <li><a href="#">Удалить</a></li>                                           
+                            <li>                            	
+                            	<?= Html::a('Изменить', ['event/update', 'id'=>$model['id']], ['class'=>'modal-link']) ?>
+                            </li>
+                            <li>
+                            	<?= Html::a('Удалить', ['event/query-remove', 'id'=>$model['id']], ['class'=>'modal-link']) ?>                            
+                            </li>                                           
 						</ul>
             		</div>
         			<a href="<?= Url::toRoute(['event/view', 'id'=>$model['id']]) ?>" class="modal-link btn btn-default article_snippet__read_btn" data-pjax="0">

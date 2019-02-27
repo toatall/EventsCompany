@@ -1,16 +1,21 @@
 const LOAD_IMAGE = '<img src="/images/loader_fb.gif" style="width:50px;" />';
 const LOAD_IMAGE2 = '<img src="/images/loading-animations.gif" class="center" />';
 
-function ajaxJson(url, container_title, container_body, image_loader)
+function ajaxJson(url, container_title, container_body, image_loader, m, dataPost)
 {
     var img = image_loader || LOAD_IMAGE;
+    var method_t = m || 'GET';
 
     $(container_title).html(img);
     $(container_body).html(img);
     
     $.ajax({
+    	type: method_t,
         url: url,
-        dataType: "json"
+        dataType: "json",
+        processData: false,
+        contentType: false,
+        data: dataPost
     })
     .done(function (data) {
 
@@ -35,11 +40,10 @@ function ajaxJson(url, container_title, container_body, image_loader)
     .fail(function (jqXHR) {
         var error_text = '<div class="alert alert-danger">' + jqXHR.status + ' ' + jqXHR.statusText + '</div>';
         $(container_title).html('Ошибка');
-        $(container_body).html(error_text);        
+        $(container_body).html(error_text);
     });
     
 }
-
 
 function loadEvents(url)
 {
@@ -54,8 +58,7 @@ function loadEvents(url)
     .fail(function (jqXHR) {
         var error_text = '<div class="alert alert-danger">' + jqXHR.status + ' ' + jqXHR.statusText + '</div>';        
         $('#events-conrainer').html(error_text);        
-    });
-    
+    });    
 }
 
 function replaceUrl(url, term, organization)
