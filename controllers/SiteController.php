@@ -69,7 +69,7 @@ class SiteController extends Controller
      * @return string
      */
     public function actionIndex($term='', $org='')
-    {
+    {              
         $searchModel = new EventSearch();
         
         if ($term != '')

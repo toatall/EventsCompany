@@ -33,6 +33,9 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     private $_organizations;
     
+    /**
+     * @inheritdoc \yii\web\IdentityInterface
+     */
     public $password;
     public $authKey;
     
@@ -118,7 +121,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         }
         
         return true;        
-    }
+    }       
     
     /* ----------------------- / Events --------------------*/
     
@@ -204,7 +207,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         $userInfo = UserInfo::inst();
         
-        $model = self::find()->where('username=:username', [':username'=>$userInfo->userLogin])->one(); 
+        $model = self::find()->where('username=:username', [':username'=>$userInfo->userLogin])->one();
         if ($model === null)
         {            
             $model = new self();
@@ -216,7 +219,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             if (!$model->save())
                 return false;
         }
-        
+        $modelAllowOrg = (new \yii\db\Query())
+            ->distinct(true)
+            ->from('ec_user_organization')
+            ->where('username=:username', [':username'=>$model->username])
+            ->all();
+        $model->allowOrganizations = ArrayHelper::map($modelAllowOrg, 'org_code', 'org_code');
+        //print_r($model->allowOrganizations);exit;
         Yii::$app->user->login($model);
         
         return $model != null;
@@ -263,11 +272,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         $query = (new \yii\db\Query())        
             ->select('org_code')
-            ->from('ec_user_organization')
-            ->where('username=:username', [':username'=>$this->username])
-            ->all();
+            ->from('ec_user_organization');
         
-        return ArrayHelper::map($query, 'org_code', 'org_code');
+        if (!\Yii::$app->user->can('admin'))
+            $query->where('username=:username', [':username'=>$this->username]);              
+        
+        return ArrayHelper::map($query->all(), 'org_code', 'org_code');
     }
     
     /**
@@ -305,6 +315,15 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                     'org_code' => $org,
                 ])->execute();
         }
+    }
+    
+    public function isAllow($org, $roles)
+    {
+        if ($org==null || $roles==null)
+            return false;
+        if (!is_array($roles))
+            $roles[] = $roles;                    
+        return (in_array($this->rolename, $roles) && in_array($org, $this->organizations));    
     }
     
 }

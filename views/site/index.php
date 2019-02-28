@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @var $this yii\web\View
+ * @var yii\data\ActiveDataProvider $dataProvider
+ * @var app\models\EventSearch $searchModel 
+ * */
 use yii\widgets\ListView;
 use app\models\Organization;
 use yii\widgets\Pjax;
@@ -9,12 +13,7 @@ use yii\bootstrap\Html;
 use kartik\typeahead\Typeahead;
 use yii\helpers\Url;
 
-/**
- * @var $this yii\web\View
- * @var yii\data\ActiveDataProvider $dataProvider
- * @var app\models\EventSearch $searchModel
- *
- * */
+
 
 $this->title = 'Электронный архив';
 ?>
@@ -109,11 +108,12 @@ $this->title = 'Электронный архив';
         	</div>        	         
     	</div>
     	<div class="page-header"></div>
-    	
+    	<?php if (Yii::$app->user->identity->isAllow($searchModel->org_code, ['moderator', 'admin'])): ?>
     	<div class="page-header">
         	<?= Html::a('Добавить', ['event/create', 'org'=>'_org_'], ['class'=>'btn btn-success modal-link-create']) ?>
         	<br /><br />
         </div>        
+        <?php endif; ?>
     </div>
 
 <?php ActiveForm::end() ?>

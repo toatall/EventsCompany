@@ -19,7 +19,7 @@ class UserQuery extends \yii\db\ActiveQuery
      * @return User[]|array
      */
     public function all($db = null)
-    {
+    {        
         return parent::all($db);
     }
 
@@ -28,7 +28,7 @@ class UserQuery extends \yii\db\ActiveQuery
      * @return User|array|null
      */
     public function one($db = null)
-    {
+    {        
         return parent::one($db);
     }
 }

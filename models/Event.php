@@ -56,6 +56,8 @@ class Event extends \yii\db\ActiveRecord
     const EVENT_TYPE_USER_ON_PHOTO = 4;
     const EVENT_TYPE_USER_ON_VIDEO = 5;
     
+    const EVENT_THUMBNAIL_HEIGHT = 500;
+    
     /**
      * Temp field for saving members from html-form
      * @var array
@@ -229,10 +231,15 @@ class Event extends \yii\db\ActiveRecord
         return true;
     }
     
+    /**
+     * {@inheritDoc}
+     * @see \yii\db\BaseActiveRecord::afterSave()
+     */
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        $this->saveMembersDb();                
+        $this->saveMembersDb();
+        $this->resizeThumbnail();
     }
     
     /**
@@ -385,6 +392,33 @@ class Event extends \yii\db\ActiveRecord
             ->orderBy('text')
             ->all();
         return ArrayHelper::map($query, 'text', 'text');
+    }
+    
+    /**
+     * Resize thumbnail image to self::EVENT_THUMBNAIL_HEIGHT height size
+     * @return string|NULL
+     */
+    private function resizeThumbnail()
+    {
+        if ($this->thumbnail!=null)
+        {
+            $thumbFile = Yii::$app->basePath . '/web' . $this->thumbnail;            
+            if (is_file($thumbFile))
+            {
+                $pathInfo = pathinfo($thumbFile);
+                $thumbFileSmall = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_small.' . $pathInfo['extension'];
+                if (!is_file($thumbFileSmall))
+                {
+                    $image = new ImageHelper();
+                    $image->load(Yii::$app->basePath . '/web' . $thumbFile);
+                    if ($image->getHeight() > self::EVENT_THUMBNAIL_HEIGHT)
+                        $image->resizeToHeight(self::EVENT_THUMBNAIL_HEIGHT);
+                    $image->save($thumbFileSmall);
+                }
+                return str_replace(Yii::$app->basePath . '/web', '', $thumbFileSmall);
+            }
+        }
+        return null;
     }
         
     /* ------------------- / Help function ------------------*/
@@ -609,21 +643,19 @@ class Event extends \yii\db\ActiveRecord
             return '/images/no_image_available.jpeg';
     }
     
+    /**
+     * Return thumnail for html image
+     * @param string $img
+     * @return string
+     */
     public static function thumnnailImageSrc($img)
     {
         if (is_file(Yii::$app->basePath . '/web' . $img))
         {
             $pathInfo = pathinfo(Yii::$app->basePath . '/web' . $img);
-            $smallThumbnail = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_small.' . $pathInfo['extension'];
-            if (!is_file($smallThumbnail))
-            {
-                $image = new ImageHelper();
-                $image->load(Yii::$app->basePath . '/web' . $img);
-                if ($image->getHeight() > 500)
-                    $image->resizeToHeight(500);
-                $image->save($smallThumbnail);
-            }   
-            return str_replace(Yii::$app->basePath . '/web', '', $smallThumbnail);
+            $smallThumbnail = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_small.' . $pathInfo['extension'];           
+            if (is_file($smallThumbnail))              
+                return str_replace(Yii::$app->basePath . '/web', '', $smallThumbnail);
         }
         return '/images/no_image_available.jpeg';
     }

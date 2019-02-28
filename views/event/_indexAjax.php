@@ -38,19 +38,20 @@ use yii\bootstrap\Html;
         			<div>
         				<?php if ($model['is_photo']): ?>
             				<span class="label label-default">Фото</span>
-            				<?php endif; ?>
-            				<?php if ($model['is_video']): ?> 
+        				<?php endif; ?>
+        				<?php if ($model['is_video']): ?> 
             				<span class="label label-default">Видео</span>
-            				<?php endif; ?>
+        				<?php endif; ?>
         			</div>
         			<div class="article_snippet__author">
         				<strong>
-        				<?= date('d', strtotime($model['date_activity'])) ?>
-                    	<?= DateHelper::monthByIndex(date('m', strtotime($model['date_activity']))) ?>
-                    	<?= date('Y', strtotime($model['date_activity'])) ?>
+            				<?= date('d', strtotime($model['date_activity'])) ?>
+                        	<?= DateHelper::monthByIndex(date('m', strtotime($model['date_activity']))) ?>
+                        	<?= date('Y', strtotime($model['date_activity'])) ?>
                     	</strong>
                     	<hr />            	
             		</div>
+            		<?php if (Yii::$app->user->identity->isAllow($model['org_code'], ['moderator', 'admin'])): ?>
             		<div class="btn-group article_snippet__bookmark_button">
                 		<button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 			<i class="glyphicon glyphicon-pencil"></i> <span class="caret"></span>
@@ -64,6 +65,7 @@ use yii\bootstrap\Html;
                             </li>                                           
 						</ul>
             		</div>
+            		<?php endif; ?>
         			<a href="<?= Url::toRoute(['event/view', 'id'=>$model['id']]) ?>" class="modal-link btn btn-default article_snippet__read_btn" data-pjax="0">
         				<i class="glyphicon glyphicon-flash"></i> Смотреть
         			</a>
