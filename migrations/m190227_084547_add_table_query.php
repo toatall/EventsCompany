@@ -15,15 +15,15 @@ class m190227_084547_add_table_query extends Migration
         $this->createTable('ec_query', [
             'id' => $this->primaryKey(),
             'org_code' => $this->string(5)->notNull(),
-            'text' => $this->string(5000)->notNull(),
-            'text_right' => $this->string(5000)->notNull(),
+            'text' => $this->string(3000)->notNull(),
+            'text_right' => $this->string(3000)->notNull(),
             'date_create' => $this->dateTime()->notNull(),
         ]);
         
         $this->createTable('ec_query_log', [
             'id' => $this->primaryKey(),
             'org_code' => $this->string(5)->notNull(),
-            'text' => $this->string(5000),
+            'text' => $this->string(3000),
             'str_user_agent' => $this->string(500),
             'username' => $this->string(250)->notNull(),
             'date_create' => $this->dateTime()->notNull(),
