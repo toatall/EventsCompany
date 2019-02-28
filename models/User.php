@@ -219,13 +219,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             if (!$model->save())
                 return false;
         }
-        $modelAllowOrg = (new \yii\db\Query())
-            ->distinct(true)
-            ->from('ec_user_organization')
-            ->where('username=:username', [':username'=>$model->username])
-            ->all();
-        $model->allowOrganizations = ArrayHelper::map($modelAllowOrg, 'org_code', 'org_code');
-        //print_r($model->allowOrganizations);exit;
+        
         Yii::$app->user->login($model);
         
         return $model != null;
