@@ -264,14 +264,25 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function getOrganizations()
     {
-        $query = (new \yii\db\Query())        
-            ->select('org_code')
-            ->from('ec_user_organization');
+        if (\Yii::$app->user->can('admin'))
+        {
+            $query = (new \yii\db\Query())
+                ->select('code')
+                ->distinct(true)
+                ->from('ec_organization')
+                ->all();
+        }
+        else
+        {            
+            $query = (new \yii\db\Query())             
+                ->select('org_code as code')
+                ->distinct(true)
+                ->from('ec_user_organization')
+                ->where('username=:username', [':username'=>$this->username])
+                ->all();
+        }
         
-        if (!\Yii::$app->user->can('admin'))
-            $query->where('username=:username', [':username'=>$this->username]);              
-        
-        return ArrayHelper::map($query->all(), 'org_code', 'org_code');
+        return ArrayHelper::map($query, 'code', 'code');
     }
     
     /**
