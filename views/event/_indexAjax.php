@@ -32,7 +32,7 @@ use yii\bootstrap\Html;
         		</div>
             	<div class="article_snippet__fade"></div>
         		<div class="article_snippet__info">
-        			<div class="article_snippet__title">
+        			<div class="article_snippet__title"<?= (strlen($model['theme']) > 250 ? ' style="font-size:18px;"' : '')?>>
         				<?= $model['theme'] ?>
         			</div>
         			<div>

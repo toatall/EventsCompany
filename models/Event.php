@@ -410,7 +410,7 @@ class Event extends \yii\db\ActiveRecord
                 if (!is_file($thumbFileSmall))
                 {
                     $image = new ImageHelper();
-                    $image->load(Yii::$app->basePath . '/web' . $thumbFile);
+                    $image->load($thumbFile);
                     if ($image->getHeight() > self::EVENT_THUMBNAIL_HEIGHT)
                         $image->resizeToHeight(self::EVENT_THUMBNAIL_HEIGHT);
                     $image->save($thumbFileSmall);

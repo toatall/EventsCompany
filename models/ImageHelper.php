@@ -27,14 +27,14 @@ class ImageHelper {
      */
     public function load($filename)
     {
-        $image_info = getimagesize($filename);
+        $image_info = \getimagesize($filename);
         $this->image_type = $image_info[2];
         if( $this->image_type == IMAGETYPE_JPEG ) {
-            $this->image = imagecreatefromjpeg($filename);
+            $this->image = \imagecreatefromjpeg($filename);
         } elseif( $this->image_type == IMAGETYPE_GIF ) {
-            $this->image = imagecreatefromgif($filename);
+            $this->image = \imagecreatefromgif($filename);
         } elseif( $this->image_type == IMAGETYPE_PNG ) {
-            $this->image = imagecreatefrompng($filename);
+            $this->image = \imagecreatefrompng($filename);
         }
         
         if ($this->image_type == IMAGETYPE_JPEG || $this->image_type == IMAGETYPE_GIF
@@ -55,16 +55,16 @@ class ImageHelper {
     public function save($filename, $image_type=IMAGETYPE_JPEG, $compression=100, $permissions=null)
     {
         if( $image_type == IMAGETYPE_JPEG ) {
-            imagejpeg($this->image,$filename,$compression);
+            \imagejpeg($this->image,$filename,$compression);
         } elseif( $image_type == IMAGETYPE_GIF ) {
-            imagegif($this->image,$filename);
+            \imagegif($this->image,$filename);
         } elseif( $image_type == IMAGETYPE_PNG ) {
-            imagepng($this->image,$filename);
+            \imagepng($this->image,$filename);
         }
         if( $permissions != null) {
-            chmod($filename,$permissions);
+            \chmod($filename,$permissions);
         }
-        imagedestroy($this->image);
+        \imagedestroy($this->image);
     }
 
     /**
@@ -75,13 +75,13 @@ class ImageHelper {
     public function output($image_type=IMAGETYPE_JPEG)
     {
         if( $image_type == IMAGETYPE_JPEG ) {
-            imagejpeg($this->image);
+            \imagejpeg($this->image);
         } elseif( $image_type == IMAGETYPE_GIF ) {
-            imagegif($this->image);
+            \imagegif($this->image);
         } elseif( $image_type == IMAGETYPE_PNG ) {
-            imagepng($this->image);
+            \imagepng($this->image);
         }
-        imagedestroy($this->image);
+        \imagedestroy($this->image);
     }
 
     /**
@@ -89,7 +89,7 @@ class ImageHelper {
      */
     public function getWidth()
     {
-        return imagesx($this->image);
+        return \imagesx($this->image);
     }
 
     /**
@@ -97,7 +97,7 @@ class ImageHelper {
      */
     public function getHeight()
     {
-        return imagesy($this->image);
+        return \imagesy($this->image);
     }
 
     /**
@@ -145,10 +145,10 @@ class ImageHelper {
      */
     public function resize($width,$height)
     {
-        $new_image = imagecreatetruecolor($width, $height);
-        imagealphablending($new_image, false);
-        imagesavealpha($new_image, true);
-        imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
+        $new_image = \imagecreatetruecolor($width, $height);
+        \imagealphablending($new_image, false);
+        \imagesavealpha($new_image, true);
+        \imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
         $this->image = $new_image;
     }
 
@@ -182,8 +182,8 @@ class ImageHelper {
      */
     private function crop($x0, $y0, $w, $h)
     {
-        $newImage = imagecreatetruecolor($w, $h);
-        imagecopyresampled($newImage, $this->image, 0, 0, $x0, $y0, $w, $h, $w, $h);
+        $newImage = \imagecreatetruecolor($w, $h);
+        \imagecopyresampled($newImage, $this->image, 0, 0, $x0, $y0, $w, $h, $w, $h);
         $this->image = $newImage;
     }
 }
